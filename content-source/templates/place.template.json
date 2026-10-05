@@ -1,0 +1,23 @@
+{
+  "publicationStatus": "draft",
+  "id": "",
+  "slug": "",
+  "name": "",
+  "description": "",
+  "type": "",
+  "status": "",
+  "city": "",
+  "country": "",
+  "address": null,
+  "coordinates": null,
+  "coordinatesVerified": false,
+  "coordinateSourceUrl": "",
+  "locationPrecision": "",
+  "topicIds": [],
+  "providerIds": [],
+  "serviceIds": [],
+  "eventFormatIds": [],
+  "detailUrl": "",
+  "contactUrl": "",
+  "contactLabel": ""
+}

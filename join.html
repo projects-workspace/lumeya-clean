@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Introduce a holistic or nature-oriented practitioner, service or place to Lumeya for public curation.">
+  <title>Join Lumeya — Introduce your work</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=15">
+</head>
+<body class="lumeya-public">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="bg-clouds" aria-hidden="true"><div class="cloud-global c1"></div><div class="cloud-global c2"></div><div class="cloud-global c3"></div></div>
+  <header class="site-header">
+    <a class="site-brand" href="index.html" aria-label="Lumeya home">Lumeya <small>Holistic discovery</small></a>
+    <nav class="site-nav" aria-label="Primary navigation"><ul>
+      <li><a href="index.html">Discover</a></li><li><a href="services.html">Services</a></li><li><a href="masters.html">Practitioners</a></li><li><a href="map.html">Places & map</a></li><li><a href="events.html">Events</a></li><li><a href="about.html">About</a></li><li><a href="join.html" aria-current="page" class="active">Join Lumeya</a></li>
+    </ul></nav>
+    <button class="menu-trigger site-menu-button" type="button" aria-label="Open menu"><span aria-hidden="true">☰</span><span>Menu</span></button>
+  </header>
+  <main class="public-main public-main--narrow" id="main">
+    <header class="page-intro"><p class="eyebrow">For practitioners and organisations</p><h1>Join Lumeya</h1><p>Introduce real work that fits Lumeya’s holistic and nature-oriented scope. The public directory helps people understand a service, who provides it, where or how it is offered, and how to make contact.</p></header>
+
+    <section class="public-section public-section--compact" aria-labelledby="provider-value-heading">
+      <div class="section-heading"><div><p class="eyebrow">What the public MVP supports</p><h2 id="provider-value-heading">Make your work easier to understand</h2></div></div>
+      <div class="about-grid">
+        <article class="section-card"><h3>Present the service</h3><p>Published information can connect an offer with its provider, topics, places and related event formats.</p></article>
+        <article class="section-card"><h3>Show the real context</h3><p>Availability, location, format and missing details stay visible so visitors can make an informed next step.</p></article>
+        <article class="section-card"><h3>Keep a direct route</h3><p>People can use the published contact action without creating a Lumeya account. A request does not confirm a booking.</p></article>
+      </div>
+      <p class="information-note">Submitting this form requests editorial review; it does not create an account, publish a listing, verify qualifications, or guarantee new enquiries. Provider Space, self-service editing, certification, bookings and payments are not active in this MVP.</p>
+    </section>
+
+    <section class="public-section" aria-labelledby="join-form-heading">
+      <div class="section-heading"><div><p class="eyebrow">No account or upload</p><h2 id="join-form-heading">Introduce your work for review</h2><p>The existing public intake accepts Practitioner, Service or Place suggestions. It does not have a separate organisation registration type.</p></div></div>
+      <form class="public-form" id="join-form" data-public-request="suggest_listing" data-requires-public-client="true" novalidate>
+        <p data-editorial-context>Your request goes to Lumeya’s private editorial queue. An operator checks sources and your relationship to the work, asks for clarification if needed, then explicitly approves the public fields. Only approved information is published.</p>
+        <input name="editorial_intent" type="hidden" value="introduction">
+        <input name="target_collection" type="hidden" value="">
+        <input name="target_id" type="hidden" value="">
+        <label for="join-listing-type">What are you introducing?</label>
+        <select id="join-listing-type" name="listing_type" required>
+          <option value="practitioner">A practitioner</option>
+          <option value="service">A service</option>
+          <option value="place">A place</option>
+        </select>
+
+        <label for="join-subject">Public name</label>
+        <input id="join-subject" name="subject" type="text" minlength="2" maxlength="160" autocomplete="organization" required>
+
+        <label for="join-details">What should visitors understand about the work?</label>
+        <textarea id="join-details" name="details" minlength="10" maxlength="2500" rows="6" aria-describedby="join-details-help" required></textarea>
+        <small id="join-details-help">Describe the public scope, format and who provides it. Do not include client details, health information or records.</small>
+
+        <label for="join-location">Public location or service area <span>(optional)</span></label>
+        <input id="join-location" name="location" type="text" maxlength="160" autocomplete="address-level2">
+
+        <label for="join-link">Public profile or service link <span>(optional)</span></label>
+        <input id="join-link" name="reference_url" type="url" maxlength="500" inputmode="url" autocomplete="url">
+
+        <label for="join-contact">How can Lumeya follow up?</label>
+        <input id="join-contact" name="contact" type="text" minlength="3" maxlength="240" autocomplete="email" required>
+        <small>Use an email address, Telegram handle or phone number. This follow-up contact remains private; any public listing contact is reviewed separately. Claiming to be a provider does not establish identity.</small>
+
+        <label class="visually-hidden" for="join-company">Leave this field empty</label>
+        <input id="join-company" name="_company" type="text" tabindex="-1" autocomplete="off" class="honeypot-field" aria-hidden="true">
+        <button class="form-submit" type="submit" disabled>Send for review</button>
+        <p class="form-status" data-form-status role="status" aria-live="polite">Checking online request availability…</p>
+        <div class="fallback-actions" data-telegram-fallback hidden>
+          <button class="button" type="button" data-copy-request>Copy request</button>
+          <span>If online submission fails, you can choose whether to continue in Telegram.</span>
+        </div>
+      </form>
+      <p class="information-note">To update existing information, use “Suggest a correction” on its listing. Sending a correction never edits the public record automatically. If a receipt cannot be confirmed, retry the unchanged details here; a retry reuses the same request key. Do not send a second Telegram copy until an operator checks whether the first request arrived.</p>
+      <p><a href="suggest.html#suggest-listing">Use the general listing suggestion form</a> · <a href="about.html">Read how curation works</a></p>
+    </section>
+  </main>
+  <nav class="quick-menu" aria-label="Mobile navigation" hidden></nav>
+  <footer class="public-footer"><div class="public-footer__row"><span>© 2026 Lumeya. Public holistic discovery.</span><nav aria-label="Footer"><a href="services.html">Services</a><a href="map.html">Places &amp; map</a><a href="about.html">About</a></nav></div></footer>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="public-config.js?v=1"></script>
+  <script src="auth.js?v=7"></script>
+  <script src="menu.js?v=12"></script>
+  <script src="discovery-data.js?v=2"></script>
+  <script src="public-forms.js?v=4"></script>
+</body>
+</html>

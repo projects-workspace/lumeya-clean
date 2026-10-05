@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="See verified scheduled events separately from Lumeya event formats and concepts.">
+  <title>Events and formats — Lumeya</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=15">
+</head>
+<body class="lumeya-public">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="bg-clouds" aria-hidden="true"><div class="cloud-global c1"></div><div class="cloud-global c2"></div><div class="cloud-global c3"></div></div>
+  <header class="site-header">
+    <a class="site-brand" href="index.html" aria-label="Lumeya home">Lumeya <small>Holistic discovery</small></a>
+    <nav class="site-nav" aria-label="Primary navigation"><ul>
+      <li><a href="index.html">Discover</a></li><li><a href="services.html">Services</a></li><li><a href="masters.html">Practitioners</a></li><li><a href="map.html">Places & map</a></li><li><a href="events.html" aria-current="page" class="active">Events</a></li><li><a href="about.html">About</a></li><li><a href="join.html">Join Lumeya</a></li>
+    </ul></nav>
+    <button class="menu-trigger site-menu-button" type="button" aria-label="Open menu"><span aria-hidden="true">☰</span><span>Menu</span></button>
+  </header>
+  <main class="public-main" id="main">
+    <header class="page-intro"><p class="eyebrow">Dated events and undated formats</p><h1>Events</h1><p>Upcoming scheduled dates are loaded separately from recurring ideas and explanatory formats. A format card never implies that an event is booked.</p></header>
+    <p class="information-note">A scheduled card reflects the public event record and its current date. Event formats describe a way to meet or work together; they do not have a published date unless one appears in the scheduled section.</p>
+
+    <section class="public-section" aria-labelledby="scheduled-heading">
+      <div class="section-heading"><div><h2 id="scheduled-heading">Scheduled events</h2><p>Live dates require a confirmed date, time, organiser and place.</p></div><a class="button" href="calendar.html">Open calendar</a></div>
+      <div id="events-state" class="state-card state-card--unavailable" role="status" aria-live="polite"><strong>Checking the public schedule</strong><span>Only upcoming events with a published date appear here.</span></div>
+      <div class="entity-grid" id="scheduled-events" hidden></div>
+    </section>
+
+    <section class="public-section" aria-labelledby="formats-heading">
+      <div class="section-heading"><div><p class="eyebrow">Undated formats</p><h2 id="formats-heading">Event formats</h2><p>These are ways participants may meet or collaborate. Contact the organiser to ask about future dates.</p></div></div>
+      <div class="catalog-toolbar" aria-label="Filter event formats">
+        <label>Search <input id="events-search" type="search" placeholder="Format, topic or provider" autocomplete="off"></label>
+        <label>Category <select id="events-category-filter"><option value="all">All categories</option></select></label>
+        <label>Status <select id="events-status-filter"><option value="all">All formats</option><option value="concept">Concept or in development</option><option value="regular">Available by request</option></select></label>
+        <button class="button" id="events-reset-filters" type="button">Clear filters</button>
+      </div>
+      <div class="state-card state-card--unavailable" id="event-formats-unavailable" role="status" aria-live="polite" hidden><strong>Event format data is unavailable</strong><span>Try again later or browse services and places.</span></div>
+      <div class="entity-grid" id="formats-grid" aria-live="polite"></div>
+      <div class="state-card" id="events-empty" hidden><strong></strong><span data-empty-description></span><div class="state-card__actions"><a class="button button--primary" href="join.html">Introduce a format</a></div></div>
+    </section>
+
+    <section class="public-section"><div class="section-heading"><div><h2>Propose or find an event</h2><p>Introduce an event format for review, or tell Lumeya what you are looking for. A request does not publish a date.</p></div><div class="hero-actions"><a class="button" href="suggest.html#looking-for">Share what you need</a><a class="button button--primary" href="join.html">Join Lumeya</a></div></div></section>
+  </main>
+  <nav class="quick-menu" aria-label="Mobile navigation" hidden></nav>
+  <footer class="public-footer"><div class="public-footer__row"><span>© 2026 Lumeya. Public holistic discovery.</span><nav aria-label="Footer"><a href="map.html">Places &amp; map</a><a href="about.html">About</a><a href="join.html">Join Lumeya</a></nav></div></footer>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="public-config.js?v=1"></script>
+  <script src="auth.js?v=7"></script>
+  <script src="menu.js?v=12"></script>
+  <script src="discovery-data.js?v=2"></script>
+  <script src="home-events.js?v=7"></script>
+  <script src="events.js?v=6"></script>
+</body>
+</html>

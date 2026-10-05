@@ -1,0 +1,2106 @@
+require('dotenv').config();
+console.log('[Bot] Script started');
+const { Telegraf, Markup, session } = require('telegraf');
+const { createClient } = require('@supabase/supabase-js');
+const { randomUUID } = require('crypto');
+
+// ── ENV CONFIG ──
+const BOT_TOKEN = String(process.env.BOT_TOKEN || '').trim();
+const SUPABASE_URL = String(process.env.SUPABASE_URL || '').trim();
+const SUPABASE_KEY = String(process.env.SUPABASE_SERVICE_ROLE_KEY || '').trim();
+const ADMIN_CHAT_ID = String(process.env.ADMIN_CHAT_ID || '').trim();
+const PUBLIC_SITE_URL = String(process.env.PUBLIC_SITE_URL || '').trim();
+const NOTIFICATION_POLL_MS = Number(process.env.NOTIFICATION_POLL_MS || 60000);
+const NOTIFICATION_TIME_ZONE = process.env.NOTIFICATION_TIME_ZONE || 'Europe/Prague';
+const PROJECT_REQUEST_POLL_MS = Number(process.env.PROJECT_REQUEST_POLL_MS || NOTIFICATION_POLL_MS || 60000);
+const PLATFORM_SUBMISSION_POLL_MS = Number(process.env.PLATFORM_SUBMISSION_POLL_MS || NOTIFICATION_POLL_MS || 60000);
+const PUBLIC_REQUEST_POLL_MS = Number(process.env.PUBLIC_REQUEST_POLL_MS || NOTIFICATION_POLL_MS || 60000);
+
+function splitUsernames(value) {
+  return String(value || '')
+    .split(',')
+    .map((item) => item.trim().replace(/^@/, '').toLowerCase())
+    .filter(Boolean);
+}
+
+const ADMINS = splitUsernames(process.env.ADMIN_USERNAMES);
+const INSTRUCTORS = splitUsernames(process.env.INSTRUCTOR_USERNAMES);
+
+const requiredEnv = {
+  BOT_TOKEN,
+  SUPABASE_URL,
+  SUPABASE_SERVICE_ROLE_KEY: SUPABASE_KEY,
+  ADMIN_CHAT_ID,
+  PUBLIC_SITE_URL
+};
+const missingEnv = Object.entries(requiredEnv)
+  .filter(([, value]) => !value)
+  .map(([name]) => name);
+
+if (missingEnv.length) {
+  console.error(`[Bot] Missing required environment variables: ${missingEnv.join(', ')}`);
+  process.exit(1);
+}
+
+let parsedPublicSiteUrl;
+let parsedSupabaseUrl;
+try {
+  parsedPublicSiteUrl = new URL(PUBLIC_SITE_URL);
+  parsedSupabaseUrl = new URL(SUPABASE_URL);
+} catch (error) {
+  console.error('[Bot] PUBLIC_SITE_URL and SUPABASE_URL must be absolute URLs.');
+  process.exit(1);
+}
+
+if (parsedPublicSiteUrl.protocol !== 'https:' || parsedPublicSiteUrl.username || parsedPublicSiteUrl.password) {
+  console.error('[Bot] PUBLIC_SITE_URL must be an HTTPS URL without embedded credentials.');
+  process.exit(1);
+}
+
+if (parsedSupabaseUrl.protocol !== 'https:' || parsedSupabaseUrl.username || parsedSupabaseUrl.password) {
+  console.error('[Bot] SUPABASE_URL must be an HTTPS URL without embedded credentials.');
+  process.exit(1);
+}
+
+if (!/^-?[1-9]\d*$/.test(ADMIN_CHAT_ID)) {
+  console.error('[Bot] ADMIN_CHAT_ID must be a numeric Telegram chat ID.');
+  process.exit(1);
+}
+
+const bot = new Telegraf(BOT_TOKEN);
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+const SITE_VERSION = 'master-event-actions-v4';
+
+bot.use(session());
+
+function splitChatIds(value) {
+  return String(value || '')
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+const PROJECT_MASTER_CHAT_IDS = {
+  'conscious-relationships': splitChatIds(process.env.CONSCIOUS_RELATIONSHIPS_MASTER_CHAT_IDS || ADMIN_CHAT_ID),
+  andrijpycha: splitChatIds(process.env.ANDRIJ_MASTER_CHAT_IDS || process.env.CONSCIOUS_RELATIONSHIPS_MASTER_CHAT_IDS || ADMIN_CHAT_ID)
+};
+
+function getFullName(from) {
+  return [from.first_name, from.last_name].filter(Boolean).join(' ') || from.username || 'Telegram User';
+}
+
+function buildPortalUrl(_userId, page = 'index.html') {
+  const base = PUBLIC_SITE_URL.endsWith('/') ? PUBLIC_SITE_URL : `${PUBLIC_SITE_URL}/`;
+  const url = new URL(page, base);
+  url.searchParams.set('v', SITE_VERSION);
+  return url.toString();
+}
+
+function buildPublicUrl(page = 'calendar.html') {
+  const base = PUBLIC_SITE_URL.endsWith('/') ? PUBLIC_SITE_URL : `${PUBLIC_SITE_URL}/`;
+  return new URL(page || 'calendar.html', base).toString();
+}
+
+function formatEventDateTime(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'час уточнюється';
+
+  return new Intl.DateTimeFormat('uk-UA', {
+    timeZone: NOTIFICATION_TIME_ZONE,
+    day: '2-digit',
+    month: 'long',
+    hour: '2-digit',
+    minute: '2-digit'
+  }).format(date);
+}
+
+function buildReminderText(notification) {
+  const payload = notification.payload || {};
+  const title = payload.title || 'подія Santiago';
+  const when = formatEventDateTime(payload.start_time);
+
+  if (notification.kind === 'event_reminder_24h') {
+    return `Нагадування Santiago\n\nЗавтра подія: ${title}\nПочаток: ${when}`;
+  }
+
+  if (notification.kind === 'event_reminder_3h') {
+    return `Нагадування Santiago\n\nСьогодні подія: ${title}\nПочаток: ${when}`;
+  }
+
+  return `Оновлення Santiago\n\n${title}\nПочаток: ${when}`;
+}
+
+function reminderKeyboard(notification) {
+  const payload = notification.payload || {};
+  const page = payload.url || 'calendar.html';
+  return Markup.inlineKeyboard([
+    [Markup.button.url('Відкрити календар', buildPublicUrl(page))]
+  ]);
+}
+
+function portalLoginKeyboard(userId, label = '🔓 Відкрити кабінет') {
+  return Markup.inlineKeyboard([
+    [Markup.button.url(label, buildPortalUrl(userId, 'cabinet.html'))]
+  ]);
+}
+
+function startMenuKeyboard(role = 'guest', userId = null) {
+  const rows = [
+    [Markup.button.url('Дізнатися більше про проєкт', buildPublicUrl('community.html'))],
+    [Markup.button.callback('Стати відвідувачем', 'apply_visitor')],
+    [Markup.button.callback('Стати резидентом клубу', 'apply_role_resident')],
+    [Markup.button.callback('Стати майстром', 'apply_role_instructor')]
+  ];
+
+  if (userId && role !== 'guest') {
+    rows.unshift([Markup.button.url('Відкрити платформу', buildPortalUrl(userId, 'cabinet.html'))]);
+  }
+
+  return Markup.inlineKeyboard(rows);
+}
+
+function buildStartText(role = 'guest') {
+  const roleLine = role && role !== 'guest'
+    ? `\n\nВаш поточний статус: ${getRoleLabel(role)}.`
+    : '';
+
+  return `Вітаємо у Santiago.\n\n` +
+    `Тут можна стати відвідувачем платформи, подати заявку в клуб або стати майстром. ` +
+    `Після підтвердження адміном бот дасть кнопку входу на платформу.${roleLine}`;
+}
+
+function applicationKeyboard() {
+  return Markup.inlineKeyboard([
+    [Markup.button.url('Дізнатися більше про проєкт', buildPublicUrl('community.html'))],
+    [Markup.button.callback('👋 Стати Відвідувачем', 'apply_visitor')],
+    [Markup.button.callback('🤝 Стати Резидентом Клубу', 'apply_role_resident')],
+    [Markup.button.callback('🧘 Стати Майстром', 'apply_role_instructor')]
+  ]);
+}
+
+async function showApplicationChoices(ctx) {
+  await ctx.reply('Чудово! Ким ви хочете стати у нашій спільноті?', applicationKeyboard());
+}
+
+function buildMainMenu(role = 'guest', options = {}) {
+  const includeAdminBack = options.includeAdminBack === true;
+
+  if (role === 'admin') {
+    return Markup.inlineKeyboard([
+      [Markup.button.url('Дізнатися більше про проєкт', buildPublicUrl('community.html'))],
+      [Markup.button.callback('👋 Стати Відвідувачем', 'apply_visitor')],
+      [Markup.button.callback('🤝 Стати Учасником Клубу', 'apply_role_resident')],
+      [Markup.button.callback('🧘 Стати Майстром', 'apply_role_instructor')],
+      [Markup.button.callback('✨ Створити щось', 'create_something')],
+      [Markup.button.callback('📋 Заявки на створення', 'admin_submissions_pending')],
+      [
+        Markup.button.callback('👁 Як відвідувач', 'preview_menu_guest'),
+        Markup.button.callback('👁 Як учасник клубу', 'preview_menu_resident')
+      ]
+    ]);
+  }
+
+  if (role === 'instructor') {
+    const rows = [
+      [Markup.button.url('Дізнатися більше про проєкт', buildPublicUrl('community.html'))],
+      [Markup.button.callback('✨ Створити щось', 'create_something')]
+    ];
+    if (includeAdminBack) rows.push([Markup.button.callback('↩️ Адмін меню', 'preview_menu_admin')]);
+    return Markup.inlineKeyboard(rows);
+  }
+
+  if (role === 'resident') {
+    const rows = [
+      [Markup.button.url('Дізнатися більше про проєкт', buildPublicUrl('community.html'))],
+      [Markup.button.callback('🧘 Стати Майстром', 'apply_role_instructor')]
+    ];
+    if (includeAdminBack) rows.push([Markup.button.callback('↩️ Адмін меню', 'preview_menu_admin')]);
+    return Markup.inlineKeyboard(rows);
+  }
+
+  const rows = [
+    [Markup.button.url('Дізнатися більше про проєкт', buildPublicUrl('community.html'))],
+    [Markup.button.callback('👋 Стати Відвідувачем', 'apply_visitor')],
+    [Markup.button.callback('🤝 Стати Учасником Клубу', 'apply_role_resident')],
+    [Markup.button.callback('🧘 Стати Майстром', 'apply_role_instructor')]
+  ];
+  if (includeAdminBack) rows.push([Markup.button.callback('↩️ Адмін меню', 'preview_menu_admin')]);
+  return Markup.inlineKeyboard(rows);
+}
+
+function createSomethingKeyboard() {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback('👤 Заявка на профіль', 'create_profile')],
+    [Markup.button.callback('🛒 Заявка на послугу', 'create_service')],
+    [Markup.button.callback('🏗️ Заявка на проєкт', 'create_project')],
+    [Markup.button.callback('📅 Заявка на подію', 'create_event')]
+  ]);
+}
+
+function previewMenuLabel(role) {
+  if (role === 'admin') return 'Ваше адмін меню:';
+  if (role === 'resident') return 'Так меню бачить учасник клубу:';
+  return 'Так меню бачить новий користувач:';
+}
+
+function clubApplicationKeyboard() {
+  return Markup.inlineKeyboard([
+    [Markup.button.callback('📝 Залишити заявку', 'submit_resident_application')]
+  ]);
+}
+
+function roleApprovalKeyboard(userId, role) {
+  return Markup.inlineKeyboard([
+    [
+      Markup.button.callback('✅ Схвалити', `approve_role_${userId}_${role}`),
+      Markup.button.callback('❌ Відхилити', `reject_role_${userId}`)
+    ]
+  ]);
+}
+
+function getRoleLabel(role) {
+  if (role === 'instructor') return 'Майстер';
+  if (role === 'resident') return 'Учасник клубу';
+  if (role === 'admin') return 'Адмін';
+  return 'Відвідувач';
+}
+
+const SUBMISSION_TYPES = {
+  profile: {
+    label: 'профіль майстра',
+    titlePrompt: 'Як має називатися ваш публічний профіль? Напишіть імʼя/назву, як на сайті.',
+    descriptionPrompt: 'Опишіть себе: практика, досвід, напрямки, для кого ви працюєте.',
+    detailsPrompt: 'Додайте посилання, контакти, Instagram/сайт/портфоліо, фото або що ще потрібно адміну для сторінки.'
+  },
+  service: {
+    label: 'послугу',
+    titlePrompt: 'Назва послуги?',
+    descriptionPrompt: 'Опишіть послугу: що людина отримує, формат, тривалість, кому підходить.',
+    detailsPrompt: 'Ціна, бажана сторінка, фото/посилання, чи це public/club/internal. Обовʼязково додайте provider_type: person або project, provider_name, provider_slug, а для project ще contact_person.'
+  },
+  project: {
+    label: 'проєкт',
+    titlePrompt: 'Назва проєкту?',
+    descriptionPrompt: 'Опишіть ідею, ціль, кому це потрібно і яку роль Santiago має зіграти.',
+    detailsPrompt: 'Додайте посилання, матеріали, команду, бажаний формат на сайті і наступні кроки.'
+  },
+  event: {
+    label: 'подію',
+    titlePrompt: 'Назва події або програми?',
+    descriptionPrompt: 'Опишіть подію: тема, для кого, що буде відбуватись, хто веде.',
+    detailsPrompt: 'Напишіть бажані дати/час, тривалість, чи треба студія, public/club/internal, ціну і ліміти учасників. Якщо потрібні файли або фото, надішліть їх тут з підписом.'
+  },
+  role_application: {
+    label: 'стати майстром',
+    titlePrompt: 'Заявка стати майстром',
+    descriptionPrompt: 'Опишіть ваш досвід і формат.',
+    detailsPrompt: 'Додайте посилання, контакти і що хочете вести у Santiago.'
+  }
+};
+
+const SERVICE_BOOKING_TITLES = {
+  'deep-massage': 'Глибокий відновлювальний масаж і чайна церемонія',
+  'wellness-katerina': 'Wellness і трансформація стану'
+};
+
+function canCreateContent(ctx) {
+  return ctx.userRole === 'instructor' || ctx.userRole === 'admin';
+}
+
+function isAdminContext(ctx) {
+  const username = ctx.from && ctx.from.username ? ctx.from.username.toLowerCase() : '';
+  const configuredAdminId = ctx.from && String(ctx.from.id) === ADMIN_CHAT_ID;
+  return ctx.userRole === 'admin' || configuredAdminId || (username && ADMINS.includes(username));
+}
+
+function compactText(value, max = 900) {
+  const text = String(value || '').trim();
+  if (text.length <= max) return text;
+  return `${text.slice(0, max - 1)}…`;
+}
+
+function getMessageText(message = {}) {
+  return message.text || message.caption || '';
+}
+
+function getMessageAttachments(message = {}) {
+  const attachments = [];
+
+  if (message.document) {
+    attachments.push({
+      type: 'document',
+      file_id: message.document.file_id,
+      file_name: message.document.file_name || null,
+      mime_type: message.document.mime_type || null
+    });
+  }
+
+  if (message.photo && message.photo.length) {
+    const photo = message.photo[message.photo.length - 1];
+    attachments.push({
+      type: 'photo',
+      file_id: photo.file_id,
+      file_unique_id: photo.file_unique_id || null
+    });
+  }
+
+  ['video', 'audio', 'voice', 'animation'].forEach((type) => {
+    if (message[type]) {
+      attachments.push({
+        type,
+        file_id: message[type].file_id,
+        file_name: message[type].file_name || null,
+        mime_type: message[type].mime_type || null
+      });
+    }
+  });
+
+  return attachments;
+}
+
+function submissionActionKeyboard(submissionOrId) {
+  const submissionId = typeof submissionOrId === 'object' ? submissionOrId.id : submissionOrId;
+  const isRoleApplication = typeof submissionOrId === 'object' && submissionOrId.kind === 'role_application';
+  const telegramId = typeof submissionOrId === 'object' ? submissionOrId.telegram_id : null;
+  const approveLabel = isRoleApplication ? '✅ Підтвердити майстра' : '✅ Так / в роботу';
+  const rejectLabel = isRoleApplication ? '❌ Відхилити роль' : '❌ Ні';
+  const rows = [];
+
+  if (telegramId) {
+    rows.push([Markup.button.url('Відкрити автора в Telegram', `tg://user?id=${telegramId}`)]);
+  }
+
+  const rejectRow = [
+    Markup.button.callback(rejectLabel, `submission_reject_${submissionId}`)
+  ];
+
+  if (!isRoleApplication) {
+    rejectRow.push(Markup.button.callback('🔗 Готово + лінк', `submission_published_${submissionId}`));
+  }
+
+  rows.push(
+    [
+      Markup.button.callback(approveLabel, `submission_approve_${submissionId}`)
+    ],
+    rejectRow
+  );
+
+  return Markup.inlineKeyboard(rows);
+}
+
+function submissionStatusLabel(status) {
+  const labels = {
+    pending: 'Очікує',
+    approved: 'В роботі',
+    rejected: 'Відхилено',
+    published: 'Опубліковано',
+    archived: 'Архів'
+  };
+  return labels[status] || status || 'Очікує';
+}
+
+function getSubmissionDisplayStatus(submission) {
+  return (submission.payload && submission.payload.workflow_status) || submission.status || 'pending';
+}
+
+function submissionModeLabel(mode) {
+  const labels = {
+    create_new: 'Створення нової сутності',
+    profile_edit: 'Зміна профілю',
+    edit_existing: 'Зміна існуючої сутності',
+    create_event_from_calendar: 'Створення події з календаря',
+    apply_role: 'Заявка стати майстром'
+  };
+  return labels[mode] || mode || 'Заявка';
+}
+
+function buildSubmissionAdminText(submission) {
+  const payload = submission.payload || {};
+  const author = payload.telegram || {};
+  const attachments = payload.attachments || [];
+  const status = getSubmissionDisplayStatus(submission);
+  const config = SUBMISSION_TYPES[submission.kind] || SUBMISSION_TYPES.event;
+  const entity = payload.entity || {};
+  const eventLinkLine = payload.attach_event_id
+    ? `Привʼязка події: ${payload.attach_event_title || payload.attach_event_id} (${payload.attach_event_id})\n`
+    : '';
+  const selectedDateLine = payload.selected_date ? `Дата з календаря: ${payload.selected_date}\n` : '';
+  const provider = payload.provider || {};
+  const providerLine = submission.kind === 'service' && (provider.type || provider.name || provider.contact_person)
+    ? `Постачальник: ${provider.type || 'person'}${provider.name ? ` · ${provider.name}` : ''}${provider.contact_person ? ` · контакт: ${provider.contact_person}` : ''}\n`
+    : '';
+  const entityLine = entity.url || entity.title || entity.key
+    ? `Сутність: ${entity.title || entity.key || 'без назви'}${entity.url ? `\nЛінк: ${buildPublicUrl(entity.url)}` : ''}\n`
+    : '';
+  const sourceLine = payload.source ? `Джерело: ${payload.source}\n` : '';
+
+  return `🧩 Заявка: ${config.label.toUpperCase()}\n\n` +
+    `Тип: ${submissionModeLabel(payload.mode)}\n` +
+    `Статус: ${submissionStatusLabel(status)}\n` +
+    `ID: ${submission.id}\n` +
+    `Автор: ${author.name || 'n/a'} (@${author.username || 'n/a'}, TG ${submission.telegram_id || author.id || 'n/a'})\n` +
+    `Профіль/чат автора: tg://user?id=${submission.telegram_id || author.id || ''}\n` +
+    sourceLine +
+    eventLinkLine +
+    selectedDateLine +
+    providerLine +
+    entityLine +
+    `Назва: ${submission.title}\n\n` +
+    `Опис:\n${compactText(submission.description, 1000)}\n\n` +
+    `Деталі / час / ціна / лінки:\n${compactText(submission.details, 1000)}\n\n` +
+    `Файли в Telegram: ${attachments.length ? `${attachments.length} нижче/у чаті` : 'немає'}\n` +
+    `Чат: tg://user?id=${submission.telegram_id || author.id || ''}`;
+}
+
+function buildSubmissionUserMessage(workflowStatus, adminMessage, publishedUrl, submission = {}) {
+  if (submission.kind === 'role_application') {
+    if (workflowStatus === 'approved') {
+      return '✨ Вашу заявку майстра схвалено. Тепер ви — Майстер Santiago. Відкрийте кабінет, щоб платформа оновила ваш доступ.';
+    }
+
+    if (workflowStatus === 'rejected') {
+      return adminMessage || '❌ Зараз заявку майстра не схвалено.';
+    }
+  }
+
+  if (workflowStatus === 'approved') {
+    return '✅ Вашу заявку прийнято в роботу. Адмін оформить матеріали на сайті і напише, коли буде готово.';
+  }
+
+  if (workflowStatus === 'rejected') {
+    return adminMessage || '❌ Зараз заявку не беремо в публікацію.';
+  }
+
+  if (workflowStatus === 'published') {
+    return adminMessage || publishedUrl || '🔗 Готово, матеріал опубліковано.';
+  }
+
+  return adminMessage || 'Статус заявки оновлено.';
+}
+
+function statusToDbStatus(workflowStatus) {
+  if (workflowStatus === 'rejected') return 'rejected';
+  if (workflowStatus === 'approved' || workflowStatus === 'published') return 'approved';
+  return 'pending';
+}
+
+function isReplyToBotMessage(ctx) {
+  const reply = ctx.message && ctx.message.reply_to_message;
+  const botId = ctx.botInfo && ctx.botInfo.id;
+  return Boolean(reply && reply.from && reply.from.is_bot && (!botId || reply.from.id === botId));
+}
+
+function extractFirstUrl(text) {
+  const match = String(text || '').match(/https?:\/\/[^\s]+/i);
+  return match ? match[0] : null;
+}
+
+function normalizeProviderSlug(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function extractLabeledValue(text, labels) {
+  const lines = String(text || '').split(/\r?\n/);
+  for (const line of lines) {
+    for (const label of labels) {
+      const pattern = new RegExp(`^\\s*${label}\\s*[:=\\-–]\\s*(.+)\\s*$`, 'i');
+      const match = line.match(pattern);
+      if (match && match[1]) return match[1].trim();
+    }
+  }
+  return '';
+}
+
+function parseServiceProviderInfo(submission) {
+  const source = [submission.description, submission.details].filter(Boolean).join('\n');
+  const rawType = extractLabeledValue(source, ['provider_type', 'provider type', 'тип постачальника', 'тип поставщика', 'тип провайдера']);
+  const inferredType = /^(project|team|проєкт|проект|команда)$/i.test(rawType)
+    || /\b(project|team|проєкт|проект|команда)\b/i.test(source)
+      ? 'project'
+      : 'person';
+  const providerName = extractLabeledValue(source, ['provider_name', 'provider name', 'provider', 'постачальник', 'поставщик', 'провайдер', 'надає']);
+  const contactPerson = extractLabeledValue(source, ['contact_person', 'contact person', 'contact', 'контакт', 'контактна особа', 'ответственный']);
+  const providerSlug = extractLabeledValue(source, ['provider_slug', 'provider slug', 'slug', 'ключ']);
+
+  return {
+    type: inferredType,
+    name: providerName,
+    slug: providerSlug || normalizeProviderSlug(providerName),
+    contact_person: contactPerson
+  };
+}
+
+async function startSubmission(ctx, kind, options = {}) {
+  if (!canCreateContent(ctx)) {
+    return ctx.reply('Цей розділ доступний для майстрів та адміністраторів. Якщо ви хочете стати майстром, подайте заявку через меню клубу.');
+  }
+
+  const config = SUBMISSION_TYPES[kind] || SUBMISSION_TYPES.event;
+  ctx.session = {
+    state: 'submission_title',
+    submissionKind: kind,
+    submissionMode: options.mode || null,
+    selectedDate: options.selectedDate || null
+  };
+  const dateLine = options.selectedDate ? `\n\nДата з календаря: ${options.selectedDate}.` : '';
+  await ctx.reply(`Створюємо заявку на ${config.label}. Адмін перевірить матеріали перед публікацією.${dateLine}\n\n${config.titlePrompt}`);
+}
+
+async function startEventAttachSubmission(ctx, eventId) {
+  if (!canCreateContent(ctx)) {
+    return ctx.reply('Привʼязка події доступна для майстрів та адміністраторів.');
+  }
+
+  const safeEventId = String(eventId || '').trim();
+  if (!safeEventId) {
+    return ctx.reply('Не вдалося визначити подію. Відкрийте календар і спробуйте ще раз.');
+  }
+
+  let event = null;
+  try {
+    const { data, error } = await supabase
+      .from('events')
+      .select('id,title,start_time,end_time,type')
+      .eq('id', safeEventId)
+      .single();
+    if (!error && data) event = data;
+  } catch (err) {
+    console.warn('[Bot] Event attach lookup failed:', err.message);
+  }
+
+  const title = event && event.title ? event.title : safeEventId;
+  const when = event && event.start_time ? formatEventDateTime(event.start_time) : 'дата уточнюється';
+  ctx.session = {
+    state: 'submission_description',
+    submissionKind: 'event',
+    submissionMode: 'attach_existing_event',
+    attachEventId: safeEventId,
+    attachEventTitle: title,
+    submissionTitle: `Привʼязати подію: ${title}`
+  };
+
+  await ctx.reply(
+    `Привʼязуємо існуючу подію до вас як майстра.\n\nПодія: ${title}\nЧас: ${when}\n\nНапишіть коротко, як саме ця подія повʼязана з вами: ви ведете її, співведете, даєте формат/послугу або хочете взяти її в роботу.`
+  );
+}
+
+function parseServiceBookingPayload(payload) {
+  const match = String(payload || '').match(/^book_(.+)_(\d{8})_(\d{4})$/);
+  if (!match) return null;
+
+  const [, slug, dateCode, timeCode] = match;
+  const year = dateCode.slice(0, 4);
+  const month = dateCode.slice(4, 6);
+  const day = dateCode.slice(6, 8);
+  const hour = timeCode.slice(0, 2);
+  const minute = timeCode.slice(2, 4);
+  const numericMonth = Number(month);
+  const numericDay = Number(day);
+  const numericHour = Number(hour);
+  const numericMinute = Number(minute);
+  if (numericMonth < 1 || numericMonth > 12 || numericDay < 1 || numericDay > 31 || numericHour > 23 || numericMinute > 59) {
+    return null;
+  }
+  const offset = getPragueOffset(Number(year), numericMonth, numericDay, numericHour);
+
+  return {
+    slug,
+    requestedAtLabel: `${year}-${month}-${day} ${hour}:${minute} Europe/Prague`,
+    requestedAtIso: `${year}-${month}-${day}T${hour}:${minute}:00${offset}`
+  };
+}
+
+function getLastSundayOfMonth(year, monthIndex) {
+  const date = new Date(Date.UTC(year, monthIndex + 1, 0));
+  date.setUTCDate(date.getUTCDate() - date.getUTCDay());
+  return date.getUTCDate();
+}
+
+function getPragueOffset(year, month, day, hour) {
+  const dstStartDay = getLastSundayOfMonth(year, 2);
+  const dstEndDay = getLastSundayOfMonth(year, 9);
+  const afterDstStart = month > 3 || (month === 3 && (day > dstStartDay || (day === dstStartDay && hour >= 3)));
+  const beforeDstEnd = month < 10 || (month === 10 && (day < dstEndDay || (day === dstEndDay && hour < 3)));
+  return afterDstStart && beforeDstEnd ? '+02:00' : '+01:00';
+}
+
+async function getServiceBookingTitle(slug) {
+  try {
+    const { data, error } = await supabase
+      .from('services')
+      .select('title')
+      .eq('slug', slug)
+      .maybeSingle();
+    if (!error && data && data.title) return data.title;
+  } catch (err) {
+    console.warn('[Bot] Service lookup failed:', err.message);
+  }
+
+  return SERVICE_BOOKING_TITLES[slug] || slug;
+}
+
+async function startServiceBookingFromPayload(ctx, payload) {
+  const booking = parseServiceBookingPayload(payload);
+  if (!booking) {
+    return ctx.reply('Не вдалося прочитати дату/час бронювання. Відкрийте сторінку послуг і спробуйте ще раз.');
+  }
+
+  const adminId = ADMIN_CHAT_ID;
+  const profileId = ctx.dbUser ? ctx.dbUser.id : null;
+  const serviceTitle = await getServiceBookingTitle(booking.slug);
+  const title = `Бронювання: ${serviceTitle}`;
+  const details = `Бажаний час: ${booking.requestedAtLabel}\nПослуга: ${serviceTitle}`;
+  const payloadData = {
+    purpose: 'service_booking',
+    workflow_status: 'pending',
+    service_slug: booking.slug,
+    service_title: serviceTitle,
+    requested_at: booking.requestedAtIso,
+    telegram: {
+      id: ctx.from.id,
+      username: ctx.from.username || null,
+      name: getFullName(ctx.from)
+    }
+  };
+
+  let savedSubmission = null;
+
+  try {
+    const { data, error } = await supabase.from('submissions').insert({
+      id: randomUUID(),
+      kind: 'service',
+      title,
+      description: 'Запит на бронювання часу для послуги.',
+      details,
+      submitted_by: profileId,
+      telegram_id: ctx.from.id,
+      status: 'pending',
+      payload: payloadData
+    }).select('id, kind, title, description, details, submitted_by, telegram_id, status, payload, created_at, updated_at').single();
+
+    if (error) throw error;
+    savedSubmission = data;
+  } catch (err) {
+    console.error('[Bot] Service booking save error:', err);
+    return ctx.reply('Не вдалося зберегти заявку. Напишіть адміну напряму або спробуйте ще раз трохи пізніше.');
+  }
+
+  const summary = `🕒 Нова заявка на бронювання послуги\n\n` +
+    `👤 Автор: ${getFullName(ctx.from)} (@${ctx.from.username || 'n/a'}, ID: ${ctx.from.id})\n` +
+    `🏷️ Послуга: ${serviceTitle}\n` +
+    `📅 Бажаний час: ${booking.requestedAtLabel}\n\n` +
+    `🔗 Чат: tg://user?id=${ctx.from.id}`;
+
+  try {
+    await bot.telegram.sendMessage(adminId, summary, submissionActionKeyboard(savedSubmission));
+  } catch (err) {
+    console.error('[Bot] Service booking admin notification error:', err);
+  }
+
+  await ctx.reply(
+    `Дякуємо! Заявку на "${serviceTitle}" отримано.\nБажаний час: ${booking.requestedAtLabel}.\nАдмін підтвердить або запропонує інший слот.`,
+    portalLoginKeyboard(ctx.from.id, '🔓 Відкрити кабінет')
+  );
+}
+
+async function fetchSubmission(submissionId) {
+  const { data, error } = await supabase
+    .from('submissions')
+    .select('id, kind, title, description, details, submitted_by, telegram_id, status, payload, created_at, updated_at')
+    .eq('id', submissionId)
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+async function sendSubmissionToAdmin(ctx, submission) {
+  await ctx.reply(buildSubmissionAdminText(submission), submissionActionKeyboard(submission));
+}
+
+async function listPendingSubmissions(ctx) {
+  if (!isAdminContext(ctx)) {
+    return ctx.reply('Це меню тільки для адміна/master.');
+  }
+
+  const { data, error } = await supabase
+    .from('submissions')
+    .select('id, kind, title, description, details, submitted_by, telegram_id, status, payload, created_at, updated_at')
+    .in('status', ['pending', 'approved'])
+    .order('created_at', { ascending: false })
+    .limit(10);
+
+  if (error) {
+    console.error('[Bot] Pending submissions fetch error:', error);
+    return ctx.reply('Не вдалося завантажити заявки. Перевір Supabase.');
+  }
+
+  const visible = (data || []).filter((submission) => {
+    const status = getSubmissionDisplayStatus(submission);
+    return ['pending', 'approved'].includes(status);
+  });
+
+  if (!visible.length) {
+    return ctx.reply('Нових заявок на створення зараз немає.');
+  }
+
+  await ctx.reply(`Показую останні заявки: ${visible.length}`);
+  for (const submission of visible) {
+    await sendSubmissionToAdmin(ctx, submission);
+  }
+}
+
+async function updateSubmissionWorkflow(submissionId, workflowStatus, options = {}) {
+  const submission = await fetchSubmission(submissionId);
+  const payload = {
+    ...(submission.payload || {}),
+    workflow_status: workflowStatus,
+    reviewed_at: new Date().toISOString()
+  };
+
+  if (options.adminId) payload.reviewed_by_telegram_id = options.adminId;
+  if (options.adminMessage) payload.admin_message = options.adminMessage;
+  if (options.publishedUrl) payload.published_url = options.publishedUrl;
+  if (options.roleGranted) payload.role_granted = options.roleGranted;
+  if (options.awaitingCommentReply !== undefined) payload.awaiting_comment_reply = options.awaitingCommentReply;
+
+  const { data, error } = await supabase
+    .from('submissions')
+    .update({
+      status: statusToDbStatus(workflowStatus),
+      payload,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', submissionId)
+    .select('id, kind, title, description, details, submitted_by, telegram_id, status, payload, created_at, updated_at')
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+async function notifySubmissionOwner(submission, workflowStatus, adminMessage, publishedUrl) {
+  if (!submission.telegram_id) return;
+
+  try {
+    const replyMarkup = adminMessage ? Markup.forceReply() : portalLoginKeyboard(submission.telegram_id, 'Відкрити кабінет');
+    await bot.telegram.sendMessage(
+      submission.telegram_id,
+      buildSubmissionUserMessage(workflowStatus, adminMessage, publishedUrl, submission),
+      replyMarkup
+    );
+  } catch (err) {
+    console.warn('[Bot] Could not notify submission owner:', err.message);
+  }
+}
+
+async function fetchAwaitingCommentReplySubmission(telegramId) {
+  const { data, error } = await supabase
+    .from('submissions')
+    .select('id, payload, telegram_id')
+    .eq('telegram_id', telegramId)
+    .contains('payload', { awaiting_comment_reply: true })
+    .order('updated_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    console.error('[Bot] Comment reply lookup error:', error);
+    return null;
+  }
+
+  return data || null;
+}
+
+async function finishUserCommentReply(ctx) {
+  const replyText = (ctx.message.text || ctx.message.caption || '').trim();
+  if (!replyText || !isReplyToBotMessage(ctx) || isAdminContext(ctx)) return false;
+
+  const submission = await fetchAwaitingCommentReplySubmission(ctx.from.id);
+  if (!submission) return false;
+
+  const payload = {
+    ...(submission.payload || {}),
+    awaiting_comment_reply: false,
+    user_comment_reply: replyText,
+    user_comment_reply_at: new Date().toISOString()
+  };
+
+  const { error } = await supabase
+    .from('submissions')
+    .update({ payload, updated_at: new Date().toISOString() })
+    .eq('id', submission.id);
+
+  if (error) {
+    console.error('[Bot] Comment reply save error:', error);
+  }
+
+  await bot.telegram.sendMessage(ADMIN_CHAT_ID, replyText);
+  return true;
+}
+
+async function approveRoleApplicationSubmission(ctx, submission) {
+  const profileMatch = submission.submitted_by
+    ? { column: 'id', value: submission.submitted_by }
+    : { column: 'telegram_id', value: submission.telegram_id };
+
+  if (!profileMatch.value) {
+    throw new Error('role_application_profile_missing');
+  }
+
+  const { error: roleError } = await supabase
+    .from('profiles')
+    .update({
+      role: 'instructor',
+      updated_at: new Date().toISOString()
+    })
+    .eq(profileMatch.column, profileMatch.value)
+    .select('id')
+    .single();
+
+  if (roleError) throw roleError;
+
+  const updated = await updateSubmissionWorkflow(submission.id, 'approved', {
+    adminId: ctx.from.id,
+    adminMessage: 'Роль майстра підтверджено.',
+    roleGranted: 'instructor',
+    awaitingCommentReply: false
+  });
+
+  await notifySubmissionOwner(updated, 'approved');
+  await ctx.reply(`✅ Заявка "${updated.title}" схвалена. Автор тепер має роль Майстра і може увійти на платформу.`);
+}
+
+async function approveSubmission(ctx, submissionId) {
+  const submission = await fetchSubmission(submissionId);
+  if (submission.kind === 'role_application') {
+    await approveRoleApplicationSubmission(ctx, submission);
+    return;
+  }
+
+  const updated = await updateSubmissionWorkflow(submissionId, 'approved', {
+    adminId: ctx.from.id,
+    awaitingCommentReply: false
+  });
+
+  await notifySubmissionOwner(updated, 'approved');
+  await ctx.reply(`✅ Заявка "${updated.title}" прийнята в роботу.`);
+}
+
+async function startSubmissionResponse(ctx, submissionId, workflowStatus) {
+  const prompts = {
+    rejected: 'Напишіть коротку причину відмови для автора.',
+    published: 'Надішліть фінальний лінк на сторінку. Можна додати коментар у цьому ж повідомленні.'
+  };
+
+  ctx.session = {
+    state: 'admin_submission_response',
+    submissionId,
+    workflowStatus
+  };
+
+  await ctx.reply(prompts[workflowStatus] || 'Напишіть повідомлення для автора.');
+}
+
+async function finishAdminSubmissionResponse(ctx, text) {
+  const submissionId = ctx.session.submissionId;
+  const workflowStatus = ctx.session.workflowStatus;
+  const publishedUrl = workflowStatus === 'published' ? extractFirstUrl(text) : null;
+  const adminMessage = workflowStatus === 'published'
+    ? text.replace(publishedUrl || '', '').trim()
+    : text.trim();
+
+  if (workflowStatus === 'published' && !publishedUrl) {
+    await ctx.reply('Для публікації потрібен лінк. Надішліть URL сторінки.');
+    return;
+  }
+
+  const updated = await updateSubmissionWorkflow(submissionId, workflowStatus, {
+    adminId: ctx.from.id,
+    adminMessage,
+    publishedUrl,
+    awaitingCommentReply: Boolean(adminMessage)
+  });
+
+  await notifySubmissionOwner(updated, workflowStatus, adminMessage, publishedUrl);
+  ctx.session = null;
+  await ctx.reply(`Готово. Статус заявки "${updated.title}": ${submissionStatusLabel(workflowStatus)}.`);
+}
+
+function isPublicRequestFlow(ctx) {
+  const text = String(ctx.message?.text || '').trim();
+  const publicStart = /^\/start(?:@[a-z0-9_]+)?\s+public_request$/i.test(text);
+  return publicStart || ctx.session?.state === 'public_request_message';
+}
+
+// ── MIDDLEWARE: UPSERT USER IN DB ──
+bot.use(async (ctx, next) => {
+  try {
+    // The public request fallback is deliberately no-account. Telegram provides
+    // the reply route for this conversation; it must not create a platform profile.
+    if (ctx.from && !isPublicRequestFlow(ctx)) {
+      const username = ctx.from.username?.toLowerCase();
+      const isAdmin = String(ctx.from.id) === ADMIN_CHAT_ID || (username && ADMINS.includes(username));
+      const isInstructor = username && INSTRUCTORS.includes(username);
+      const initialRole = isAdmin ? 'admin' : (isInstructor ? 'instructor' : 'guest');
+      const fullName = getFullName(ctx.from);
+      
+      let { data: profile, error: fetchError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('telegram_id', ctx.from.id)
+        .single();
+
+      if (fetchError && fetchError.code === 'PGRST116') {
+        console.log(`[Bot] Creating profile for @${ctx.from.username || ctx.from.id}`);
+        const { data: created, error: insertError } = await supabase
+          .from('profiles')
+          .insert({
+            id: randomUUID(),
+            telegram_id: ctx.from.id,
+            username: username || null,
+            full_name: fullName,
+            role: initialRole
+          })
+          .select()
+          .single();
+
+        if (insertError) {
+          console.error('[Bot] Profile create error:', insertError);
+          ctx.userRole = 'guest';
+        } else {
+          ctx.userRole = created.role;
+          ctx.dbUser = created;
+          ctx.isNewUser = true;
+        }
+      } else if (profile) {
+        if (isAdmin && profile.role !== 'admin') {
+          console.log(`[Bot] Upgrading @${ctx.from.username} to admin`);
+          const { data: updated } = await supabase.from('profiles').update({ role: 'admin', username: username || profile.username, full_name: fullName }).eq('telegram_id', ctx.from.id).select().single();
+          ctx.userRole = 'admin';
+          ctx.dbUser = updated;
+        } else if (isInstructor && profile.role !== 'instructor' && profile.role !== 'admin') {
+          console.log(`[Bot] Upgrading @${ctx.from.username} to instructor`);
+          const { data: updated } = await supabase.from('profiles').update({ role: 'instructor', username: username || profile.username, full_name: fullName }).eq('telegram_id', ctx.from.id).select().single();
+          ctx.userRole = 'instructor';
+          ctx.dbUser = updated;
+        } else {
+          ctx.userRole = profile.role;
+          ctx.dbUser = profile;
+        }
+      } else {
+        ctx.userRole = 'guest';
+      }
+    }
+  } catch (err) {
+    console.error('[Bot] Middleware error:', err);
+  }
+  return next();
+});
+
+function extractPublicRequestValue(text, label) {
+  const match = String(text || '').match(new RegExp(`^${label}:\\s*(.+)$`, 'im'));
+  return match ? match[1].trim() : null;
+}
+
+function publicRequestRecord(ctx, text) {
+  const normalized = String(text || '').trim();
+  const declaredType = /Lumeya public request:\s*suggest_listing/i.test(normalized)
+    ? 'suggest_listing'
+    : 'looking_for';
+  const listedType = String(extractPublicRequestValue(normalized, 'Listing type') || '').toLowerCase();
+  const allowedListingTypes = ['practitioner', 'service', 'place'];
+  const requestType = declaredType === 'suggest_listing' && allowedListingTypes.includes(listedType)
+    ? 'suggest_listing'
+    : 'looking_for';
+  const preference = String(extractPublicRequestValue(normalized, 'Preference') || '').toLowerCase();
+  const detailsMarker = normalized.match(/(?:^|\n)Details:\s*\n?/i);
+  const details = (detailsMarker
+    ? normalized.slice(detailsMarker.index + detailsMarker[0].length)
+    : normalized
+  ).trim().slice(0, 2500);
+
+  return {
+    request_type: requestType,
+    listing_type: requestType === 'suggest_listing' ? listedType : null,
+    subject: (extractPublicRequestValue(normalized, 'Subject') || 'Telegram public request').slice(0, 160),
+    details,
+    location: (extractPublicRequestValue(normalized, 'Location') || '').slice(0, 160) || null,
+    preference: requestType === 'looking_for' && ['online', 'in_person', 'either'].includes(preference)
+      ? preference
+      : null,
+    contact: (extractPublicRequestValue(normalized, 'Contact') || `Telegram user ${ctx.from.id}`).slice(0, 240),
+    reference_url: (extractPublicRequestValue(normalized, 'Link') || '').slice(0, 500) || null,
+    source_page: null,
+    source_channel: 'telegram'
+  };
+}
+
+async function finishPublicRequestFallback(ctx, text) {
+  const normalized = String(text || '').trim();
+  if (normalized.length < 10) {
+    await ctx.reply('Please paste the full request details (at least 10 characters).');
+    return;
+  }
+  if (normalized.length > 3500) {
+    await ctx.reply('The request is too long. Please shorten it to 3,500 characters and send it again.');
+    return;
+  }
+
+  const record = publicRequestRecord(ctx, normalized);
+  let storedRequestId = null;
+  let stored = false;
+  let notified = false;
+
+  try {
+    const { data, error } = await supabase
+      .from('public_discovery_requests')
+      .insert(record)
+      .select('id')
+      .single();
+
+    if (error) throw error;
+    storedRequestId = data?.id || null;
+    stored = true;
+  } catch (error) {
+    console.error('[Bot] Public request storage failed:', error?.message || error);
+  }
+
+  try {
+    const adminText = [
+      'New Lumeya public request',
+      '',
+      `From: ${getFullName(ctx.from)}`,
+      `Telegram: @${ctx.from.username || 'n/a'} (${ctx.from.id})`,
+      `Database: ${stored ? 'stored' : 'not stored'}`,
+      '',
+      normalized
+    ].join('\n').slice(0, 4000);
+    await bot.telegram.sendMessage(ADMIN_CHAT_ID, adminText);
+    notified = true;
+
+    if (storedRequestId) {
+      const { error: markError } = await supabase
+        .from('public_discovery_requests')
+        .update({
+          notification_status: 'notified',
+          admin_notified_at: new Date().toISOString(),
+          admin_notify_error: null
+        })
+        .eq('id', storedRequestId);
+      if (markError) console.error('[Bot] Public request notification mark failed:', markError);
+    }
+  } catch (error) {
+    console.error('[Bot] Public request admin notification failed:', error?.message || error);
+  }
+
+  if (!stored && !notified) {
+    await ctx.reply('We could not deliver the request right now. Please keep your copied text and try again later.');
+    return;
+  }
+
+  ctx.session = null;
+  await ctx.reply('Thank you. Your request has been received.');
+}
+
+// ── START COMMAND & MAIN MENU ──
+bot.start(async (ctx) => {
+  const startPayload = ctx.startPayload;
+
+  if (startPayload === 'public_request') {
+    ctx.session = { state: 'public_request_message' };
+    return ctx.reply('Paste the request details you copied from Lumeya. Send them as one text message.');
+  }
+
+  if (startPayload === 'login') {
+    return ctx.reply(buildStartText(ctx.userRole), startMenuKeyboard(ctx.userRole, ctx.from.id));
+  }
+
+  if (startPayload === 'apply') {
+    return showApplicationChoices(ctx);
+  }
+
+  if (startPayload === 'openmic') {
+    ctx.session = { state: 'openmic_name' };
+    return ctx.reply('Open Mic & Santiago Talks 🎤\n\nЯк до вас звертатися?');
+  }
+
+  if (startPayload && startPayload.startsWith('book_')) {
+    return startServiceBookingFromPayload(ctx, startPayload);
+  }
+
+  if (startPayload && startPayload.startsWith('attach_event_')) {
+    const eventId = startPayload.replace('attach_event_', '');
+    return startEventAttachSubmission(ctx, eventId);
+  }
+
+  if (startPayload && startPayload.startsWith('create_event_')) {
+    const selectedDate = startPayload.replace('create_event_', '');
+    return startSubmission(ctx, 'event', {
+      mode: 'create_event_from_calendar',
+      selectedDate
+    });
+  }
+
+  if (startPayload && startPayload.startsWith('create_')) {
+    const kind = startPayload.replace('create_', '');
+    if (SUBMISSION_TYPES[kind]) {
+      return startSubmission(ctx, kind);
+    }
+  }
+
+  ctx.reply(buildStartText(ctx.userRole), startMenuKeyboard(ctx.userRole, ctx.from.id));
+});
+
+// ── CLUB & INSTRUCTOR APPLICATION BRANCH ──
+bot.action('apply_club', async (ctx) => {
+  await showApplicationChoices(ctx);
+  await ctx.answerCbQuery();
+});
+
+bot.action('apply_visitor', async (ctx) => {
+  await ctx.reply(
+    'Ваш профіль відвідувача готовий. Відкрийте кабінет, щоб увійти на платформу.',
+    portalLoginKeyboard(ctx.from.id)
+  );
+  await ctx.answerCbQuery();
+});
+
+bot.action('apply_role_resident', async (ctx) => {
+  await ctx.reply(
+    'Участь у клубі Santiago дає доступ до закритих подій, спільноти, спеціальних форматів і можливості бути ближче до внутрішнього життя простору.\n\nЯкщо хочете приєднатися, залиште заявку, і адмін її розгляне.',
+    clubApplicationKeyboard()
+  );
+  await ctx.answerCbQuery();
+});
+
+bot.action('submit_resident_application', async (ctx) => {
+  await finishResidentApplication(ctx);
+  await ctx.answerCbQuery();
+});
+
+bot.action(/preview_menu_(guest|resident|admin)/, async (ctx) => {
+  if (!isAdminContext(ctx)) {
+    return ctx.answerCbQuery('Тільки для адміна.', { show_alert: true });
+  }
+
+  const role = ctx.match[1];
+  await ctx.reply(previewMenuLabel(role), buildMainMenu(role, { includeAdminBack: role !== 'admin' }));
+  await ctx.answerCbQuery();
+});
+
+bot.action('apply_role_instructor', (ctx) => {
+  ctx.session = { 
+    state: 'mentor_application_materials',
+    applyingRole: 'instructor'
+  };
+  ctx.reply('Напишіть одним повідомленням про себе як майстра: досвід, напрямки, що хочете проводити, посилання, портфоліо або біографію. Можна також надіслати файл/фото з описом у підписі.');
+  ctx.answerCbQuery();
+});
+
+// ── INSTRUCTOR WIZARD BRANCH ──
+bot.action('create_something', async (ctx) => {
+  if (ctx.userRole !== 'instructor' && ctx.userRole !== 'admin') {
+    return ctx.answerCbQuery('У вас немає доступу до цього меню.', { show_alert: true });
+  }
+
+  ctx.reply(
+    'Що хочете створити?',
+    createSomethingKeyboard()
+  );
+  ctx.answerCbQuery();
+});
+
+bot.action(/create_(profile|service|project|event)/, async (ctx) => {
+  await startSubmission(ctx, ctx.match[1]);
+  ctx.answerCbQuery();
+});
+
+bot.command('submissions', async (ctx) => {
+  await listPendingSubmissions(ctx);
+});
+
+bot.action('admin_submissions_pending', async (ctx) => {
+  await listPendingSubmissions(ctx);
+  await ctx.answerCbQuery();
+});
+
+// ── ADMIN APPROVAL HANDLERS ──
+bot.action(/approve_role_(\d+)_(.+)/, async (ctx) => {
+  if (!isAdminContext(ctx)) {
+    return ctx.answerCbQuery('Тільки для головних адмінів.', { show_alert: true });
+  }
+
+  const userId = ctx.match[1];
+  const role = ctx.match[2];
+
+  const { error } = await supabase
+    .from('profiles')
+    .update({ role: role })
+    .eq('telegram_id', userId);
+
+  if (error) {
+    console.error('[Bot] Approval error:', error);
+    return ctx.answerCbQuery('Помилка при оновленні ролі.');
+  }
+
+  await ctx.editMessageText(ctx.callbackQuery.message.text + `\n\n✅ **СХВАЛЕНО: ${role.toUpperCase()}**`);
+  
+  try {
+    await bot.telegram.sendMessage(
+      userId,
+      `✨ Вітаємо! Вашу заявку схвалено. Тепер ви — ${getRoleLabel(role)}. Відкрийте кабінет, щоб платформа оновила ваш доступ.`,
+      portalLoginKeyboard(userId)
+    );
+  } catch (err) {
+    console.log('[Bot] Could not notify user of approval');
+  }
+  
+  ctx.answerCbQuery();
+});
+
+bot.action(/reject_role_(\d+)/, async (ctx) => {
+  if (!isAdminContext(ctx)) return ctx.answerCbQuery('Тільки для адміна.');
+  const userId = ctx.match[1];
+  await ctx.editMessageText(ctx.callbackQuery.message.text + '\n\n❌ **ВІДХИЛЕНО**');
+  try {
+    await bot.telegram.sendMessage(userId, 'На жаль, вашу заявку на роль відхилено. Ви все ще можете користуватися ботом як Гість.');
+  } catch (err) {}
+  ctx.answerCbQuery();
+});
+
+bot.action(/submission_(approve|reject|published)_([0-9a-f-]+)/, async (ctx) => {
+  if (!isAdminContext(ctx)) {
+    return ctx.answerCbQuery('Тільки для адміна/master.', { show_alert: true });
+  }
+
+  const action = ctx.match[1];
+  const submissionId = ctx.match[2];
+
+  try {
+    if (action === 'approve') {
+      await approveSubmission(ctx, submissionId);
+    } else if (action === 'reject') {
+      await startSubmissionResponse(ctx, submissionId, 'rejected');
+    } else {
+      await startSubmissionResponse(ctx, submissionId, action);
+    }
+
+    await ctx.answerCbQuery();
+  } catch (err) {
+    console.error('[Bot] Submission action error:', err);
+    await ctx.answerCbQuery('Не вдалося оновити заявку.', { show_alert: true });
+  }
+});
+
+bot.action(/event_type_(public|club|internal)/, async (ctx) => {
+  if (!ctx.session || !ctx.session.eventTitle) return ctx.answerCbQuery('Помилка сесії.', { show_alert: true });
+  const type = ctx.match[1];
+  const { data: profile } = await supabase.from('profiles').select('id').eq('telegram_id', ctx.from.id).single();
+
+  const { error } = await supabase.from('events').insert({
+    id: randomUUID(),
+    title: ctx.session.eventTitle,
+    description: ctx.session.eventDesc,
+    start_time: ctx.session.eventStart,
+    end_time: ctx.session.eventEnd,
+    type: type,
+    instructor_id: profile ? profile.id : null,
+    status: 'confirmed'
+  });
+
+  if (error) {
+    ctx.reply('❌ Помилка при створенні події.');
+  } else {
+    ctx.reply(`✅ Подію "${ctx.session.eventTitle}" успішно створено!`);
+  }
+  ctx.session = null;
+  ctx.answerCbQuery();
+});
+
+// Mentor application can be text, a file, a photo, or any Telegram message with a caption.
+bot.on('message', async (ctx, next) => {
+  if (!ctx.session || !ctx.session.state) {
+    const handledCommentReply = await finishUserCommentReply(ctx);
+    if (handledCommentReply) return;
+  }
+
+  if (ctx.session && ctx.session.state === 'admin_submission_response' && !ctx.message.text) {
+    await ctx.reply('Для відповіді автору потрібен текст або лінк. Надішліть, будь ласка, текстовим повідомленням.');
+    return;
+  }
+
+  if (ctx.session && ctx.session.state === 'submission_details' && !ctx.message.text) {
+    const attachments = getMessageAttachments(ctx.message);
+    if (!attachments.length) return next();
+
+    ctx.session.submissionDetails = getMessageText(ctx.message) || 'Файл/медіа без тексту. Дивіться переслане повідомлення в Telegram.';
+    ctx.session.submissionAttachments = attachments;
+    await finishContentSubmission(ctx);
+    return;
+  }
+
+  if (!ctx.session || ctx.session.state !== 'mentor_application_materials') return next();
+
+  await finishMentorApplication(ctx);
+});
+
+// ── TEXT HANDLER (STATE MACHINE) ──
+bot.on('text', async (ctx, next) => {
+  if (!ctx.session || !ctx.session.state) return next();
+
+  const state = ctx.session.state;
+  const text = ctx.message.text;
+
+  if (state === 'public_request_message') {
+    await finishPublicRequestFallback(ctx, text);
+    return;
+  }
+
+  if (state === 'admin_submission_response') {
+    await finishAdminSubmissionResponse(ctx, text);
+    return;
+  }
+
+  if (state === 'openmic_name') {
+    ctx.session.openmicName = text;
+    ctx.session.state = 'openmic_topic';
+    ctx.reply('Про що ви хочете виступити? Напишіть тему або формат.');
+    return;
+  }
+
+  if (state === 'openmic_topic') {
+    ctx.session.openmicTopic = text;
+    ctx.session.state = 'openmic_contact';
+    ctx.reply('Залиште контакт для звʼязку або напишіть, коли вам зручно обговорити деталі.');
+    return;
+  }
+
+  if (state === 'openmic_contact') {
+    ctx.session.openmicContact = text;
+    await finishOpenMicApplication(ctx);
+    return;
+  }
+
+  if (state === 'submission_title') {
+    const config = SUBMISSION_TYPES[ctx.session.submissionKind] || SUBMISSION_TYPES.event;
+    ctx.session.submissionTitle = text;
+    ctx.session.state = 'submission_description';
+    ctx.reply(config.descriptionPrompt);
+    return;
+  }
+
+  if (state === 'submission_description') {
+    const config = SUBMISSION_TYPES[ctx.session.submissionKind] || SUBMISSION_TYPES.event;
+    ctx.session.submissionDescription = text;
+    ctx.session.state = 'submission_details';
+    if (ctx.session.submissionMode === 'attach_existing_event') {
+      ctx.reply('Додайте деталі для адміна: що саме треба привʼязати, яку роль ви маєте в події, чи треба змінити опис/дату/послугу/ціну, і будь-які посилання або матеріали.');
+    } else {
+      ctx.reply(config.detailsPrompt);
+    }
+    return;
+  }
+
+  if (state === 'submission_details') {
+    ctx.session.submissionDetails = text;
+    await finishContentSubmission(ctx);
+    return;
+  }
+
+  // Event Creation States
+  if (state === 'event_title') {
+    ctx.session.eventTitle = text;
+    ctx.session.state = 'event_desc';
+    ctx.reply('Крок 2/4\n\nВведіть короткий опис події:');
+    return;
+  }
+  if (state === 'event_desc') {
+    ctx.session.eventDesc = text;
+    ctx.session.state = 'event_date';
+    ctx.reply('Крок 3/4\n\nВведіть дату та час початку (YYYY-MM-DD HH:MM):');
+    return;
+  }
+  if (state === 'event_date') {
+    const dateObj = new Date(text);
+    if (isNaN(dateObj.getTime())) {
+      ctx.reply('❌ Неправильний формат. Спробуйте ще раз (YYYY-MM-DD HH:MM):');
+      return;
+    }
+    ctx.session.eventStart = dateObj.toISOString();
+    ctx.session.eventEnd = new Date(dateObj.getTime() + 90 * 60000).toISOString();
+    ctx.session.state = null;
+    ctx.reply('Крок 4/4\n\nОберіть тип події:', Markup.inlineKeyboard([
+      [Markup.button.callback('🟢 Публічна', 'event_type_public')],
+      [Markup.button.callback('🟣 Клубна', 'event_type_club')],
+      [Markup.button.callback('⚪️ Внутрішня', 'event_type_internal')]
+    ]));
+    return;
+  }
+
+  // Service Creation States (Omitted for brevity, but could be added back)
+  if (state === 'service_title') {
+    ctx.session.serviceTitle = text;
+    ctx.session.state = null;
+    ctx.reply(`Послуга "${text}" збережена (режим розробки).`);
+    return;
+  }
+
+  return next();
+});
+
+async function finishResidentApplication(ctx) {
+  const adminId = ADMIN_CHAT_ID;
+  const summary = `🤝 Нова заявка в клуб Santiago\n\n` +
+    `👤 Ім'я: ${getFullName(ctx.from)}\n` +
+    `🆔 User: @${ctx.from.username || 'n/a'} (ID: ${ctx.from.id})\n` +
+    `🔗 Чат: tg://user?id=${ctx.from.id}`;
+
+  try {
+    await bot.telegram.sendMessage(adminId, summary, roleApprovalKeyboard(ctx.from.id, 'resident'));
+    await ctx.reply('Дякуємо! Заявка в клуб надіслана адміну. Коли її схвалять, ви отримаєте кнопку входу в кабінет.');
+  } catch (err) {
+    console.error('[Bot] Resident application admin notification error:', err);
+    await ctx.reply('Заявку отримано, але зараз не вдалося відправити повідомлення адміну. Спробуйте ще раз або напишіть адміну напряму.');
+  }
+
+  ctx.session = null;
+  await ctx.reply('Повернутися в головне меню:', buildMainMenu(ctx.userRole));
+}
+
+async function finishMentorApplication(ctx) {
+  const adminId = ADMIN_CHAT_ID;
+  const message = ctx.message || {};
+  const materialsText = message.text || message.caption || '';
+  const attachments = getMessageAttachments(message);
+  const details = materialsText || 'Файл/медіа без тексту. Дивіться переслане повідомлення в Telegram.';
+  const profileId = ctx.dbUser ? ctx.dbUser.id : null;
+
+  if (materialsText) {
+    const { error } = await supabase
+      .from('profiles')
+      .update({
+        full_name: getFullName(ctx.from),
+        bio: materialsText
+      })
+      .eq('telegram_id', ctx.from.id);
+
+    if (error) {
+      console.error('[Bot] Could not update mentor application profile:', error);
+    }
+  }
+
+  let savedSubmission = null;
+  try {
+    const { data, error } = await supabase.from('submissions').insert({
+      id: randomUUID(),
+      kind: 'role_application',
+      title: 'Заявка стати майстром',
+      description: materialsText || 'Заявка майстра з Telegram.',
+      details,
+      submitted_by: profileId,
+      telegram_id: ctx.from.id,
+      status: 'pending',
+      payload: {
+        workflow_status: 'pending',
+        source: 'telegram',
+        mode: 'apply_role',
+        requested_role: 'instructor',
+        attachments,
+        telegram: {
+          id: ctx.from.id,
+          username: ctx.from.username || null,
+          name: getFullName(ctx.from)
+        }
+      }
+    }).select('id, kind, title, description, details, submitted_by, telegram_id, status, payload, created_at, updated_at').single();
+
+    if (error) throw error;
+    savedSubmission = data;
+  } catch (err) {
+    console.error('[Bot] Mentor application save error:', err);
+  }
+
+  const summary = savedSubmission
+    ? buildSubmissionAdminText(savedSubmission)
+    : `🧘 Нова заявка майстра\n\n` +
+      `👤 Ім'я: ${getFullName(ctx.from)}\n` +
+      `🆔 User: @${ctx.from.username || 'n/a'} (ID: ${ctx.from.id})\n` +
+      (materialsText ? `\n📝 Матеріали:\n${materialsText}\n` : '\n📝 Матеріали: файл/медіа переслано нижче.\n') +
+      `\n🔗 Чат: tg://user?id=${ctx.from.id}`;
+
+  try {
+    await bot.telegram.sendMessage(
+      adminId,
+      summary,
+      savedSubmission ? submissionActionKeyboard(savedSubmission) : roleApprovalKeyboard(ctx.from.id, 'instructor')
+    );
+    if (!message.text) {
+      await ctx.forwardMessage(adminId);
+    }
+    await ctx.reply('Дякуємо! Заявка майстра надіслана адміну. Після схвалення ви отримаєте доступ до відповідного кабінету.');
+  } catch (err) {
+    console.error('[Bot] Mentor application admin notification error:', err);
+    await ctx.reply('Заявку отримано, але зараз не вдалося відправити повідомлення адміну. Спробуйте ще раз або напишіть адміну напряму.');
+  }
+
+  ctx.session = null;
+  await ctx.reply('Повернутися в головне меню:', buildMainMenu(ctx.userRole));
+}
+
+async function finishOpenMicApplication(ctx) {
+  const adminId = ADMIN_CHAT_ID;
+  const profileId = ctx.dbUser ? ctx.dbUser.id : null;
+  const details = `Ім'я: ${ctx.session.openmicName}\nТема/формат: ${ctx.session.openmicTopic}\nКонтакт/час: ${ctx.session.openmicContact}`;
+  const payloadData = {
+    purpose: 'openmic_submission',
+    source: 'telegram',
+    workflow_status: 'pending',
+    openmic_name: ctx.session.openmicName,
+    openmic_topic: ctx.session.openmicTopic,
+    openmic_contact: ctx.session.openmicContact,
+    telegram: {
+      id: ctx.from.id,
+      username: ctx.from.username || null,
+      name: getFullName(ctx.from)
+    }
+  };
+  let savedSubmission = null;
+
+  try {
+    const { data, error } = await supabase.from('submissions').insert({
+      id: randomUUID(),
+      kind: 'openmic',
+      title: 'Open Mic / Santiago Talks',
+      description: 'Заявка на виступ на Open Mic / Santiago Talks.',
+      details,
+      submitted_by: profileId,
+      telegram_id: ctx.from.id,
+      status: 'pending',
+      payload: payloadData
+    }).select('id, kind, title, description, details, submitted_by, telegram_id, status, payload, created_at, updated_at').single();
+
+    if (error) throw error;
+    savedSubmission = data;
+  } catch (err) {
+    console.error('[Bot] Open Mic save error:', err);
+  }
+
+  const summary = `🎤 **Нова заявка на Open Mic / Santiago Talks**\n\n` +
+    `👤 **Ім'я:** ${ctx.session.openmicName}\n` +
+    `🆔 **User:** @${ctx.from.username || 'n/a'} (ID: ${ctx.from.id})\n` +
+    `🎯 **Тема/формат:** ${ctx.session.openmicTopic}\n` +
+    `📬 **Контакт/час:** ${ctx.session.openmicContact}\n` +
+    `\n🔗 [Відкрити чат](tg://user?id=${ctx.from.id})`;
+
+  try {
+    await bot.telegram.sendMessage(
+      adminId,
+      summary,
+      {
+        parse_mode: 'Markdown',
+        ...(savedSubmission ? submissionActionKeyboard(savedSubmission) : {})
+      }
+    );
+    await ctx.reply('Дякуємо! Заявка на Open Mic надіслана команді Santiago. Ми звʼяжемося з вами найближчим часом. ✨');
+  } catch (err) {
+    console.error('[Bot] Open Mic notification error:', err);
+    await ctx.reply('Дякуємо! Ми отримали вашу заявку, але зараз не змогли відправити сповіщення адміністратору.');
+  }
+
+  ctx.session = null;
+  ctx.reply('Повернутися в головне меню:', buildMainMenu(ctx.userRole));
+}
+
+async function finishContentSubmission(ctx) {
+  const kind = ctx.session.submissionKind || 'event';
+  const config = SUBMISSION_TYPES[kind] || SUBMISSION_TYPES.event;
+  const adminId = ADMIN_CHAT_ID;
+  const profileId = ctx.dbUser ? ctx.dbUser.id : null;
+  const sourceMessage = ctx.message || {};
+  const attachments = ctx.session.submissionAttachments || getMessageAttachments(sourceMessage);
+
+  const payload = {
+    title: ctx.session.submissionTitle,
+    description: ctx.session.submissionDescription,
+    details: ctx.session.submissionDetails,
+    workflow_status: 'pending',
+    attachments,
+    mode: ctx.session.submissionMode || null,
+    selected_date: ctx.session.selectedDate || null,
+    attach_event_id: ctx.session.attachEventId || null,
+    attach_event_title: ctx.session.attachEventTitle || null,
+    provider: kind === 'service' ? parseServiceProviderInfo({
+      description: ctx.session.submissionDescription,
+      details: ctx.session.submissionDetails
+    }) : null,
+    telegram: {
+      id: ctx.from.id,
+      username: ctx.from.username || null,
+      name: getFullName(ctx.from)
+    }
+  };
+
+  let savedSubmission = null;
+
+  try {
+    const { data, error } = await supabase.from('submissions').insert({
+      id: randomUUID(),
+      kind,
+      title: payload.title,
+      description: payload.description,
+      details: payload.details,
+      submitted_by: profileId,
+      telegram_id: ctx.from.id,
+      status: 'pending',
+      payload
+    }).select('id, kind, title, description, details, submitted_by, telegram_id, status, payload, created_at, updated_at').single();
+    if (error) console.warn('[Bot] Submission DB save skipped/failed:', error.message);
+    if (data) savedSubmission = data;
+  } catch (err) {
+    console.warn('[Bot] Submission table unavailable:', err.message);
+  }
+
+  const summary = `🧩 Нова заявка: ${config.label.toUpperCase()}\n\n` +
+    `👤 Автор: ${getFullName(ctx.from)} (@${ctx.from.username || 'n/a'}, ID: ${ctx.from.id})\n` +
+    `🏷️ Назва: ${payload.title}\n\n` +
+    `📝 Опис:\n${compactText(payload.description, 1000)}\n\n` +
+    `📌 Деталі / час / ціна / лінки:\n${compactText(payload.details, 1000)}\n\n` +
+    `📎 Файли в Telegram: ${attachments.length ? attachments.length : 'немає'}\n\n` +
+    `🔗 Чат: tg://user?id=${ctx.from.id}`;
+
+  try {
+    if (savedSubmission) {
+      await bot.telegram.sendMessage(adminId, summary, submissionActionKeyboard(savedSubmission));
+    } else {
+      await bot.telegram.sendMessage(adminId, summary);
+    }
+    if (attachments.length) {
+      await ctx.forwardMessage(adminId);
+    }
+    await ctx.reply(`Дякуємо! Заявка на ${config.label} надіслана адміну. Після перевірки її можна буде оформити на сайті/календарі.`);
+  } catch (err) {
+    console.error('[Bot] Content submission admin notification error:', err);
+    await ctx.reply('Заявку отримано, але зараз не вдалося відправити повідомлення адміну. Спробуйте ще раз або напишіть адміну напряму.');
+  }
+
+  ctx.session = null;
+  await ctx.reply('Повернутися в головне меню:', buildMainMenu(ctx.userRole));
+}
+
+let notificationWorkerBusy = false;
+let projectRequestWorkerBusy = false;
+let platformSubmissionWorkerBusy = false;
+
+async function markNotification(id, patch) {
+  const { error } = await supabase
+    .from('subscription_notifications')
+    .update({
+      ...patch,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', id);
+
+  if (error) console.error('[Bot] Notification status update error:', error);
+}
+
+async function processDueNotification(notification) {
+  const { data: subscription, error: subscriptionError } = await supabase
+    .from('subscriptions')
+    .select('status, preferences')
+    .eq('id', notification.subscription_id)
+    .single();
+
+  if (subscriptionError || !subscription || subscription.status !== 'active') {
+    await markNotification(notification.id, { status: 'cancelled' });
+    return;
+  }
+
+  if (notification.kind.startsWith('event_reminder') &&
+      subscription.preferences &&
+      subscription.preferences.event_reminders === false) {
+    await markNotification(notification.id, { status: 'cancelled' });
+    return;
+  }
+
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('telegram_id, full_name')
+    .eq('id', notification.user_id)
+    .single();
+
+  if (profileError || !profile || !profile.telegram_id) {
+    await markNotification(notification.id, {
+      status: 'failed',
+      failed_at: new Date().toISOString(),
+      error: profileError ? profileError.message : 'profile_telegram_id_missing'
+    });
+    return;
+  }
+
+  try {
+    await bot.telegram.sendMessage(
+      profile.telegram_id,
+      buildReminderText(notification),
+      reminderKeyboard(notification)
+    );
+
+    await markNotification(notification.id, {
+      status: 'sent',
+      sent_at: new Date().toISOString(),
+      error: null
+    });
+  } catch (err) {
+    console.error('[Bot] Reminder send error:', err);
+    await markNotification(notification.id, {
+      status: 'failed',
+      failed_at: new Date().toISOString(),
+      error: err.message || 'telegram_send_failed'
+    });
+  }
+}
+
+async function processDueNotifications() {
+  if (notificationWorkerBusy) return;
+  notificationWorkerBusy = true;
+
+  try {
+    const { data: notifications, error } = await supabase
+      .from('subscription_notifications')
+      .select('id, subscription_id, user_id, target_type, target_key, kind, send_at, payload')
+      .eq('status', 'pending')
+      .lte('send_at', new Date().toISOString())
+      .order('send_at', { ascending: true })
+      .limit(25);
+
+    if (error) {
+      console.error('[Bot] Notification fetch error:', error);
+      return;
+    }
+
+    for (const notification of notifications || []) {
+      await processDueNotification(notification);
+    }
+  } catch (err) {
+    console.error('[Bot] Notification worker error:', err);
+  } finally {
+    notificationWorkerBusy = false;
+  }
+}
+
+function startNotificationWorker() {
+  if (!Number.isFinite(NOTIFICATION_POLL_MS) || NOTIFICATION_POLL_MS <= 0) {
+    console.log('[Bot] Notification worker disabled');
+    return;
+  }
+
+  console.log(`[Bot] Notification worker polling every ${NOTIFICATION_POLL_MS}ms`);
+  setTimeout(processDueNotifications, 5000);
+  setInterval(processDueNotifications, NOTIFICATION_POLL_MS);
+}
+
+function shouldNotifyAdminAboutSubmission(submission) {
+  const payload = submission.payload || {};
+  const source = payload.source || '';
+
+  if (payload.admin_notified_at) return false;
+  return ['cabinet', 'platform_entity', 'community', 'openmic_page'].includes(source);
+}
+
+async function markSubmissionAdminNotification(submission, patch) {
+  const payload = {
+    ...(submission.payload || {}),
+    ...patch
+  };
+
+  const { error } = await supabase
+    .from('submissions')
+    .update({
+      payload,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', submission.id);
+
+  if (error) console.error('[Bot] Submission notification mark error:', error);
+}
+
+async function processPlatformSubmissionNotification(submission) {
+  try {
+    await bot.telegram.sendMessage(
+      ADMIN_CHAT_ID,
+      buildSubmissionAdminText(submission),
+      submissionActionKeyboard(submission)
+    );
+
+    await markSubmissionAdminNotification(submission, {
+      admin_notified_at: new Date().toISOString(),
+      admin_notify_error: null
+    });
+  } catch (err) {
+    console.error('[Bot] Platform submission admin notification error:', err);
+    await markSubmissionAdminNotification(submission, {
+      admin_notify_attempted_at: new Date().toISOString(),
+      admin_notify_error: err.message || 'telegram_send_failed'
+    });
+  }
+}
+
+async function processPlatformSubmissionNotifications() {
+  if (platformSubmissionWorkerBusy) return;
+  platformSubmissionWorkerBusy = true;
+
+  try {
+    const { data: submissions, error } = await supabase
+      .from('submissions')
+      .select('id, kind, title, description, details, submitted_by, telegram_id, status, payload, created_at, updated_at')
+      .eq('status', 'pending')
+      .order('created_at', { ascending: true })
+      .limit(40);
+
+    if (error) {
+      console.error('[Bot] Platform submission notification fetch error:', error);
+      return;
+    }
+
+    const visible = (submissions || []).filter(shouldNotifyAdminAboutSubmission);
+    for (const submission of visible) {
+      await processPlatformSubmissionNotification(submission);
+    }
+  } catch (err) {
+    console.error('[Bot] Platform submission notification worker error:', err);
+  } finally {
+    platformSubmissionWorkerBusy = false;
+  }
+}
+
+function startPlatformSubmissionWorker() {
+  if (!Number.isFinite(PLATFORM_SUBMISSION_POLL_MS) || PLATFORM_SUBMISSION_POLL_MS <= 0) {
+    console.log('[Bot] Platform submission worker disabled');
+    return;
+  }
+
+  console.log(`[Bot] Platform submission worker polling every ${PLATFORM_SUBMISSION_POLL_MS}ms`);
+  setTimeout(processPlatformSubmissionNotifications, 9000);
+  setInterval(processPlatformSubmissionNotifications, PLATFORM_SUBMISSION_POLL_MS);
+}
+
+let publicRequestWorkerBusy = false;
+
+function buildPublicDiscoveryRequestAdminText(request) {
+  const requestType = request.request_type === 'suggest_listing' ? 'Listing suggestion' : 'Service demand';
+  return [
+    'New Lumeya public request',
+    '',
+    `Type: ${requestType}`,
+    request.listing_type ? `Listing type: ${request.listing_type}` : null,
+    `Subject: ${compactText(request.subject, 160)}`,
+    request.location ? `Location: ${compactText(request.location, 160)}` : null,
+    request.preference ? `Preference: ${request.preference}` : null,
+    `Contact: ${compactText(request.contact, 240)}`,
+    request.reference_url ? `Link: ${compactText(request.reference_url, 500)}` : null,
+    request.source_page ? `Source: ${compactText(request.source_page, 500)}` : null,
+    '',
+    compactText(request.details, 2500)
+  ].filter((line) => line !== null).join('\n').slice(0, 4000);
+}
+
+async function markPublicDiscoveryRequest(requestId, patch) {
+  const { error } = await supabase
+    .from('public_discovery_requests')
+    .update(patch)
+    .eq('id', requestId);
+  if (error) console.error('[Bot] Public request notification state update failed:', error);
+}
+
+async function processPublicDiscoveryRequest(request) {
+  try {
+    await bot.telegram.sendMessage(ADMIN_CHAT_ID, buildPublicDiscoveryRequestAdminText(request));
+    await markPublicDiscoveryRequest(request.id, {
+      notification_status: 'notified',
+      admin_notified_at: new Date().toISOString(),
+      admin_notify_error: null
+    });
+  } catch (error) {
+    console.error('[Bot] Public request admin notification failed:', error?.message || error);
+    await markPublicDiscoveryRequest(request.id, {
+      notification_status: 'failed',
+      admin_notify_error: compactText(error?.message || 'telegram_send_failed', 500)
+    });
+  }
+}
+
+async function processPublicDiscoveryRequests() {
+  if (publicRequestWorkerBusy) return;
+  publicRequestWorkerBusy = true;
+
+  try {
+    const { data: requests, error } = await supabase.rpc('claim_public_discovery_requests', {
+      p_limit: 20
+    });
+    if (error) {
+      console.error('[Bot] Public request claim failed:', error);
+      return;
+    }
+
+    for (const request of requests || []) {
+      await processPublicDiscoveryRequest(request);
+    }
+  } catch (error) {
+    console.error('[Bot] Public request notification worker failed:', error);
+  } finally {
+    publicRequestWorkerBusy = false;
+  }
+}
+
+function startPublicRequestWorker() {
+  if (!Number.isFinite(PUBLIC_REQUEST_POLL_MS) || PUBLIC_REQUEST_POLL_MS <= 0) {
+    console.log('[Bot] Public request worker disabled');
+    return;
+  }
+
+  console.log(`[Bot] Public request worker polling every ${PUBLIC_REQUEST_POLL_MS}ms`);
+  setTimeout(processPublicDiscoveryRequests, 4000);
+  setInterval(processPublicDiscoveryRequests, PUBLIC_REQUEST_POLL_MS);
+}
+
+function resolveProjectMasterChatIds(request) {
+  const chatIds = new Set();
+  const slugs = Array.isArray(request.target_master_slugs) ? request.target_master_slugs : [];
+
+  [...slugs, request.project_slug].forEach((slug) => {
+    (PROJECT_MASTER_CHAT_IDS[slug] || []).forEach((chatId) => chatIds.add(chatId));
+  });
+
+  if (!chatIds.size && PROJECT_MASTER_CHAT_IDS[request.project_slug]) {
+    PROJECT_MASTER_CHAT_IDS[request.project_slug].forEach((chatId) => chatIds.add(chatId));
+  }
+
+  return [...chatIds];
+}
+
+function projectMasterRequestKeyboard(request) {
+  const buttons = [];
+  if (request.requester_telegram_id) {
+    buttons.push([Markup.button.url('Написати людині', `tg://user?id=${request.requester_telegram_id}`)]);
+  }
+  if (request.page_url) {
+    buttons.push([Markup.button.url('Відкрити формат', request.page_url)]);
+  }
+  return buttons.length ? Markup.inlineKeyboard(buttons) : undefined;
+}
+
+function buildProjectMasterRequestText(request) {
+  const authorName = request.requester_name || 'Santiago user';
+  const username = request.requester_username ? `@${request.requester_username}` : '@n/a';
+  const chatLink = request.requester_telegram_id ? `tg://user?id=${request.requester_telegram_id}` : 'немає';
+  const comment = request.comment && String(request.comment).trim()
+    ? compactText(request.comment, 1000)
+    : 'Без коментаря. Людина просто підтвердила заявку.';
+
+  return `💞 Нова заявка на формат\n\n` +
+    `Проєкт: ${request.project_title || request.project_slug}\n` +
+    `Від: ${authorName} (${username}, TG ${request.requester_telegram_id || 'n/a'})\n\n` +
+    `Коментар:\n${comment}\n\n` +
+    `Людина: ${chatLink}\n` +
+    `Формат: ${request.page_url || buildPublicUrl('conscious-relationships.html')}`;
+}
+
+async function markProjectMasterRequest(id, patch) {
+  const { error } = await supabase
+    .from('project_master_requests')
+    .update({
+      ...patch,
+      updated_at: new Date().toISOString()
+    })
+    .eq('id', id);
+
+  if (error) console.error('[Bot] Project request status update error:', error);
+}
+
+async function processProjectMasterRequest(request) {
+  const chatIds = resolveProjectMasterChatIds(request);
+  if (!chatIds.length) {
+    await markProjectMasterRequest(request.id, {
+      status: 'failed',
+      notification_error: 'project_master_chat_ids_missing'
+    });
+    return;
+  }
+
+  try {
+    const text = buildProjectMasterRequestText(request);
+    const keyboard = projectMasterRequestKeyboard(request);
+    for (const chatId of chatIds) {
+      await bot.telegram.sendMessage(chatId, text, keyboard);
+    }
+
+    await markProjectMasterRequest(request.id, {
+      status: 'sent',
+      notified_at: new Date().toISOString(),
+      notification_error: null
+    });
+  } catch (err) {
+    console.error('[Bot] Project master request notification error:', err);
+    await markProjectMasterRequest(request.id, {
+      status: 'failed',
+      notification_error: err.message || 'telegram_send_failed'
+    });
+  }
+}
+
+async function processProjectMasterRequests() {
+  if (projectRequestWorkerBusy) return;
+  projectRequestWorkerBusy = true;
+
+  try {
+    const { data: requests, error } = await supabase
+      .from('project_master_requests')
+      .select('id, project_slug, project_title, page_url, requester_telegram_id, requester_name, requester_username, comment, target_master_slugs, status, created_at')
+      .eq('status', 'pending')
+      .order('created_at', { ascending: true })
+      .limit(25);
+
+    if (error) {
+      console.error('[Bot] Project master requests fetch error:', error);
+      return;
+    }
+
+    for (const request of requests || []) {
+      await processProjectMasterRequest(request);
+    }
+  } catch (err) {
+    console.error('[Bot] Project master request worker error:', err);
+  } finally {
+    projectRequestWorkerBusy = false;
+  }
+}
+
+function startProjectRequestWorker() {
+  if (!Number.isFinite(PROJECT_REQUEST_POLL_MS) || PROJECT_REQUEST_POLL_MS <= 0) {
+    console.log('[Bot] Project request worker disabled');
+    return;
+  }
+
+  console.log(`[Bot] Project request worker polling every ${PROJECT_REQUEST_POLL_MS}ms`);
+  setTimeout(processProjectMasterRequests, 7000);
+  setInterval(processProjectMasterRequests, PROJECT_REQUEST_POLL_MS);
+}
+
+bot.launch().then(() => {
+  console.log('[Bot] Launch successful');
+  startNotificationWorker();
+  startPublicRequestWorker();
+  startPlatformSubmissionWorker();
+  startProjectRequestWorker();
+}).catch((error) => {
+  console.error('[Bot] Launch failed:', error?.message || error);
+  process.exitCode = 1;
+});
+
+process.once('SIGINT', () => bot.stop('SIGINT'));
+process.once('SIGTERM', () => bot.stop('SIGTERM'));

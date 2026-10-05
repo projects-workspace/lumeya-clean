@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Meet Lumeya practitioners and organisations and explore their approach, location and connected services.">
+  <title>Practitioners — Lumeya</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=15">
+</head>
+<body class="lumeya-public">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="bg-clouds" aria-hidden="true"><div class="cloud-global c1"></div><div class="cloud-global c2"></div><div class="cloud-global c3"></div></div>
+  <header class="site-header">
+    <a class="site-brand" href="index.html" aria-label="Lumeya home">Lumeya <small>Holistic discovery</small></a>
+    <nav class="site-nav" aria-label="Primary navigation"><ul>
+      <li><a href="index.html">Discover</a></li><li><a href="services.html">Services</a></li><li><a href="masters.html" aria-current="page" class="active">Practitioners</a></li><li><a href="map.html">Places & map</a></li><li><a href="events.html">Events</a></li><li><a href="about.html">About</a></li><li><a href="join.html">Join Lumeya</a></li>
+    </ul></nav>
+    <button class="menu-trigger site-menu-button" type="button" aria-label="Open menu"><span aria-hidden="true">☰</span><span>Menu</span></button>
+  </header>
+  <main class="public-main" id="main">
+    <header class="page-intro"><p class="eyebrow">People and organisations behind the work</p><h1>Practitioners and providers</h1><p>Explore the people and organisations connected to published services, places and event formats. Missing information is marked rather than filled in.</p></header>
+    <p class="information-note">The directory presents public information currently available to Lumeya. A published profile is not a certification, licence check or guarantee of outcomes.</p>
+    <div class="catalog-toolbar" id="masters-filters" aria-label="Filter practitioners">
+      <label>Search <input id="masters-search" type="search" placeholder="Name, organisation, approach or field" autocomplete="off"></label>
+      <label>City <select id="masters-city-filter"><option value="all">All locations</option></select></label>
+      <label>Topic <select id="masters-topic-filter"><option value="all">All topics</option></select></label>
+    </div>
+    <div class="state-card state-card--unavailable" id="masters-data-unavailable" role="status" aria-live="polite" hidden><strong>Provider data is unavailable</strong><span>Try again later, or explore the published service and place information.</span></div>
+    <p class="results-summary" id="masters-results-count" aria-live="polite"></p>
+    <div class="entity-grid" id="masters-grid" aria-live="polite"></div>
+    <div class="state-card" id="masters-empty" hidden><strong></strong><span data-empty-description></span><div class="state-card__actions"><button class="button" id="masters-reset-filters" type="button">Clear filters</button><a class="button button--primary" href="join.html">Introduce your work</a></div></div>
+    <section class="public-section"><div class="section-heading"><div><h2>Offer relevant work?</h2><p>Introduce a practitioner, service or place for editorial review. Sending information does not create an account or publish a listing.</p></div><a class="button button--primary" href="join.html">Join Lumeya</a></div></section>
+  </main>
+  <nav class="quick-menu" aria-label="Mobile navigation" hidden></nav>
+  <footer class="public-footer"><div class="public-footer__row"><span>© 2026 Lumeya. Public holistic discovery.</span><nav aria-label="Footer"><a href="map.html">Places &amp; map</a><a href="calendar.html">Calendar</a><a href="join.html">Join Lumeya</a></nav></div></footer>
+  <script src="menu.js?v=12"></script>
+  <script src="discovery-data.js?v=2"></script>
+  <script src="masters.js?v=8"></script>
+</body>
+</html>

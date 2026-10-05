@@ -1,0 +1,1150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Legacy Lumeya account area. Public accounts are currently dormant.">
+  <title>Account area (dormant) — Lumeya</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css?v=10" />
+  <link rel="stylesheet" href="favorites.css?v=4" />
+  <style>
+    .cabinet-page {
+      padding: 100px 20px 60px;
+      max-width: 1200px;
+      margin: 0 auto;
+      min-height: 100vh;
+    }
+    .cabinet-shell {
+      display: grid;
+      gap: 26px;
+      margin-top: 36px;
+    }
+    .cabinet-page h1,
+    .cabinet-page h2,
+    .cabinet-page h3 {
+      background: none !important;
+      -webkit-text-fill-color: currentColor !important;
+      -webkit-background-clip: border-box !important;
+      background-clip: border-box;
+    }
+    body.calendar-page:not(.grayscale-mode) .cabinet-page .cabinet-section__header h2 {
+      color: var(--text-day) !important;
+      -webkit-text-fill-color: var(--text-day) !important;
+    }
+    body.calendar-page:not(.grayscale-mode) .cabinet-page .cabinet-section__header p {
+      color: var(--text-day-muted) !important;
+    }
+    .cabinet-status {
+      order: 0;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      align-items: center;
+      gap: 18px;
+      padding: 18px 20px;
+      border-radius: 16px;
+      border: 1px solid rgba(95, 255, 224, 0.18);
+      background: rgba(255, 255, 255, 0.055);
+      backdrop-filter: blur(16px);
+      box-shadow: 0 18px 48px rgba(0, 0, 0, 0.18);
+    }
+    .cabinet-status__content {
+      display: grid;
+      gap: 8px;
+      min-width: 0;
+    }
+    .cabinet-status__line {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .cabinet-status__title {
+      margin: 0;
+      color: var(--fg);
+      font-size: 1.02rem;
+      font-weight: 800;
+    }
+    .cabinet-status__text {
+      margin: 0;
+      color: var(--fg-muted);
+      font-size: 0.9rem;
+      line-height: 1.55;
+    }
+    .cabinet-role-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      width: fit-content;
+      min-height: 30px;
+      padding: 0 11px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.13);
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--fg-muted);
+      font-size: 0.72rem;
+      font-weight: 900;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .cabinet-role-badge::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: currentColor;
+      box-shadow: 0 0 10px currentColor;
+    }
+    .cabinet-role-badge--visitor {
+      color: #6ee7d8;
+      border-color: rgba(95, 255, 224, 0.28);
+    }
+    .cabinet-role-badge--resident {
+      color: var(--glow-green);
+      border-color: rgba(16, 185, 129, 0.3);
+    }
+    .cabinet-role-badge--instructor {
+      color: var(--glow-blue);
+      border-color: rgba(59, 130, 246, 0.3);
+    }
+    .cabinet-role-badge--admin {
+      color: var(--glow-yellow);
+      border-color: rgba(245, 158, 11, 0.34);
+    }
+    .cabinet-view-switch {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+    .cabinet-view-switch[hidden] {
+      display: none !important;
+    }
+    .cabinet-view-switch__button {
+      min-height: 32px;
+      padding: 0 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.13);
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--fg-muted);
+      font-size: 0.74rem;
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .cabinet-view-switch__button.is-active {
+      border-color: rgba(255, 204, 0, 0.45);
+      background: rgba(255, 204, 0, 0.13);
+      color: var(--glow-yellow);
+    }
+    .cabinet-view-switch--master {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(320px, 420px);
+      align-items: center;
+      gap: 16px;
+      width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
+      justify-self: stretch;
+      margin-top: 0;
+      padding: 14px 16px;
+      border-radius: 16px;
+      border: 1px solid rgba(95, 255, 224, 0.22);
+      background: rgba(255, 255, 255, 0.08);
+      box-shadow: 0 14px 38px rgba(15, 23, 42, 0.1);
+    }
+    .cabinet-view-switch--master .cabinet-view-switch__button {
+      min-height: 40px;
+      padding: 0 14px;
+      background: rgba(255, 255, 255, 0.12);
+    }
+    .cabinet-view-switch--master.is-tools-view {
+      border-color: rgba(59, 130, 246, 0.28);
+      background: rgba(59, 130, 246, 0.1);
+    }
+    .cabinet-view-switch--master.is-member-view {
+      border-color: rgba(16, 185, 129, 0.3);
+      background: rgba(16, 185, 129, 0.1);
+    }
+    .cabinet-view-switch--master.is-tools-view .cabinet-view-switch__copy strong {
+      color: var(--glow-blue);
+    }
+    .cabinet-view-switch--master.is-member-view .cabinet-view-switch__copy strong {
+      color: var(--glow-green);
+    }
+    .cabinet-view-switch__copy {
+      display: grid;
+      gap: 4px;
+      min-width: 0;
+      max-width: 720px;
+    }
+    .cabinet-view-switch__copy strong {
+      color: var(--fg);
+      font-size: 0.92rem;
+      font-weight: 900;
+    }
+    .cabinet-view-switch__copy span {
+      color: var(--fg-muted);
+      font-size: 0.82rem;
+      line-height: 1.45;
+    }
+    .cabinet-view-switch__buttons {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      justify-self: stretch;
+      min-width: 0;
+    }
+    .cabinet-view-switch__buttons .cabinet-view-switch__button {
+      width: 100%;
+      min-width: 0;
+    }
+    .cabinet-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 40px;
+      padding: 0 13px;
+      border-radius: 10px;
+      border: 1px solid rgba(95, 255, 224, 0.26);
+      background: rgba(255, 255, 255, 0.07);
+      color: var(--fg);
+      font-size: 0.8rem;
+      font-weight: 800;
+      text-decoration: none;
+      cursor: pointer;
+      transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
+    }
+    .cabinet-action:hover {
+      transform: translateY(-1px);
+      border-color: rgba(95, 255, 224, 0.58);
+      background: rgba(95, 255, 224, 0.13);
+    }
+    .cabinet-action:disabled {
+      opacity: 0.62;
+      cursor: wait;
+      transform: none;
+    }
+    .cabinet-action--full {
+      width: 100%;
+    }
+    .cabinet-action svg {
+      width: 16px;
+      height: 16px;
+      flex: 0 0 auto;
+    }
+    .cabinet-section {
+      order: 2;
+      display: grid;
+      gap: 16px;
+      width: 100%;
+      min-width: 0;
+      justify-self: stretch;
+    }
+    .cabinet-section--master {
+      order: 1;
+      align-self: start;
+    }
+    .cabinet-section[hidden] {
+      display: none !important;
+    }
+    .cabinet-section__header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 18px;
+      padding-bottom: 4px;
+    }
+    .cabinet-section__header-text {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+    }
+    .cabinet-section__eyebrow {
+      color: #6ee7d8;
+      font-size: 0.72rem;
+      font-weight: 900;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+    .cabinet-section__header h2 {
+      margin: 0;
+      color: var(--fg);
+      font-size: clamp(1.28rem, 2.3vw, 1.75rem);
+      letter-spacing: 0;
+      text-align: left;
+    }
+    .cabinet-section__header p {
+      margin: 0;
+      max-width: 720px;
+      color: var(--fg-muted);
+      font-size: 0.92rem;
+      line-height: 1.55;
+    }
+    .cabinet-role-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .cabinet-role-card {
+      display: grid;
+      align-content: start;
+      gap: 14px;
+      min-height: 188px;
+      padding: 18px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: linear-gradient(160deg, rgba(255, 255, 255, 0.072), rgba(255, 255, 255, 0.026));
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.16);
+    }
+    .cabinet-role-card[data-master-card-link] {
+      cursor: pointer;
+      transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+    }
+    .cabinet-role-card[data-master-card-link]:hover,
+    .cabinet-role-card[data-master-card-link]:focus-visible {
+      transform: translateY(-2px);
+      border-color: rgba(95, 255, 224, 0.34);
+      background: linear-gradient(160deg, rgba(95, 255, 224, 0.11), rgba(255, 255, 255, 0.032));
+      outline: none;
+    }
+    .cabinet-role-card__top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .cabinet-role-card__icon {
+      display: inline-grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border-radius: 12px;
+      color: #6ee7d8;
+      background: rgba(95, 255, 224, 0.11);
+      border: 1px solid rgba(95, 255, 224, 0.18);
+    }
+    .cabinet-role-card__icon svg {
+      width: 20px;
+      height: 20px;
+    }
+    .cabinet-role-card__state {
+      display: inline-flex;
+      align-items: center;
+      min-height: 26px;
+      padding: 0 9px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.07);
+      color: var(--fg-muted);
+      font-size: 0.68rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      white-space: nowrap;
+    }
+    .cabinet-role-card__state--ready {
+      color: #6ee7d8;
+      background: rgba(95, 255, 224, 0.12);
+    }
+    .cabinet-role-card__state--next {
+      color: var(--glow-yellow);
+      background: rgba(245, 158, 11, 0.14);
+    }
+    .cabinet-role-card h3 {
+      margin: 0;
+      color: var(--fg);
+      font-size: 1.05rem;
+      line-height: 1.28;
+      background: none;
+      -webkit-text-fill-color: currentColor;
+    }
+    .cabinet-role-card p {
+      margin: 0;
+      color: var(--fg-muted);
+      font-size: 0.88rem;
+      line-height: 1.52;
+    }
+    .cabinet-role-card__actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: auto;
+    }
+    .cabinet-role-card--club .cabinet-role-card__icon {
+      color: var(--glow-green);
+      background: rgba(16, 185, 129, 0.12);
+      border-color: rgba(16, 185, 129, 0.2);
+    }
+    .cabinet-role-card--mentor .cabinet-role-card__icon {
+      color: var(--glow-blue);
+      background: rgba(59, 130, 246, 0.12);
+      border-color: rgba(59, 130, 246, 0.2);
+    }
+    .cabinet-role-card--admin .cabinet-role-card__icon {
+      color: var(--glow-yellow);
+      background: rgba(245, 158, 11, 0.13);
+      border-color: rgba(245, 158, 11, 0.22);
+    }
+    .cabinet-data-panel {
+      display: grid;
+      gap: 12px;
+      padding: 18px;
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: linear-gradient(160deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.024));
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.15);
+    }
+    .cabinet-data-panel__title {
+      margin: 0;
+      color: var(--fg);
+      font-size: 1rem;
+      font-weight: 800;
+    }
+    .cabinet-data-list {
+      display: grid;
+      gap: 10px;
+    }
+    .cabinet-data-item {
+      display: grid;
+      gap: 7px;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.045);
+    }
+    .cabinet-data-item__top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+    }
+    .cabinet-data-item__title {
+      margin: 0;
+      color: var(--fg);
+      font-size: 0.92rem;
+      font-weight: 800;
+      line-height: 1.35;
+    }
+    .cabinet-data-item__meta,
+    .cabinet-data-item__text {
+      margin: 0;
+      color: var(--fg-muted);
+      font-size: 0.8rem;
+      line-height: 1.48;
+    }
+    .cabinet-status-pill {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      min-height: 26px;
+      padding: 0 9px;
+      border-radius: 999px;
+      background: rgba(95, 255, 224, 0.11);
+      color: #6ee7d8;
+      font-size: 0.68rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+    .cabinet-status-pill--pending,
+    .cabinet-status-pill--needs_info {
+      background: rgba(255, 204, 0, 0.13);
+      color: var(--glow-yellow);
+    }
+    .cabinet-status-pill--rejected,
+    .cabinet-status-pill--cancelled {
+      background: rgba(248, 113, 113, 0.13);
+      color: #fca5a5;
+    }
+    .cabinet-data-stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+    .cabinet-data-stat {
+      display: grid;
+      gap: 4px;
+      min-height: 76px;
+      padding: 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.045);
+    }
+    .cabinet-data-stat strong {
+      color: var(--fg);
+      font-size: 1.25rem;
+    }
+    .cabinet-data-stat span {
+      color: var(--fg-muted);
+      font-size: 0.74rem;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+    .cabinet-guide {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin: 30px auto 0;
+      padding: 18px 20px;
+      max-width: 920px;
+      border: 1px solid rgba(95, 255, 224, 0.22);
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.06);
+      backdrop-filter: blur(16px);
+      text-align: left;
+    }
+    .cabinet-guide__text {
+      display: grid;
+      gap: 5px;
+      min-width: 0;
+    }
+    .cabinet-guide__text strong {
+      color: var(--fg);
+      font-size: 1rem;
+    }
+    .cabinet-guide__title {
+      margin: 0;
+      color: var(--fg) !important;
+      font-size: 1rem;
+      font-weight: 800;
+      line-height: 1.35;
+      text-shadow: none;
+    }
+    body.calendar-page:not(.grayscale-mode) .cabinet-guide__title {
+      color: var(--text-day) !important;
+      -webkit-text-fill-color: var(--text-day) !important;
+    }
+    .cabinet-guide__text span {
+      color: var(--fg-muted);
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+    .cabinet-guide__button {
+      flex: 0 0 auto;
+      min-height: 40px;
+      padding: 0 14px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 204, 0, 0.42);
+      background: rgba(255, 204, 0, 0.13);
+      color: var(--glow-yellow);
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .cabinet-info-popup {
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      display: none;
+      place-items: center;
+      padding: 22px;
+      background: rgba(4, 8, 18, 0.72);
+      backdrop-filter: blur(14px);
+    }
+    .cabinet-info-popup.open {
+      display: grid;
+    }
+    .cabinet-info-popup__panel {
+      width: min(680px, 100%);
+      max-height: min(760px, 88vh);
+      overflow: auto;
+      padding: 26px;
+      border-radius: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      background: rgba(13, 20, 36, 0.96);
+      box-shadow: 0 24px 80px rgba(0, 0, 0, 0.42);
+    }
+    .cabinet-info-popup__top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+    .cabinet-info-popup__top h2 {
+      margin: 0;
+      color: var(--glow-yellow);
+      font-size: 1.35rem;
+    }
+    .cabinet-info-popup__close {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--fg);
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+    .cabinet-info-popup__list {
+      display: grid;
+      gap: 14px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .cabinet-info-popup__list li {
+      padding: 14px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--fg-muted);
+      line-height: 1.55;
+    }
+    .cabinet-info-popup__list strong {
+      color: var(--fg);
+    }
+    .cabinet-request-form {
+      display: grid;
+      gap: 14px;
+    }
+    .cabinet-request-form label {
+      display: grid;
+      gap: 7px;
+      color: var(--fg);
+      font-size: 0.78rem;
+      font-weight: 800;
+    }
+    .cabinet-request-form input,
+    .cabinet-request-form textarea {
+      width: 100%;
+      box-sizing: border-box;
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(255, 255, 255, 0.07);
+      color: var(--fg);
+      font: inherit;
+      line-height: 1.45;
+      outline: none;
+    }
+    .cabinet-request-form input {
+      min-height: 42px;
+      padding: 0 12px;
+    }
+    .cabinet-request-form textarea {
+      min-height: 170px;
+      padding: 12px;
+      resize: vertical;
+    }
+    .cabinet-request-form input:focus,
+    .cabinet-request-form textarea:focus {
+      border-color: rgba(95, 255, 224, 0.5);
+      box-shadow: 0 0 0 3px rgba(95, 255, 224, 0.1);
+    }
+    .cabinet-request-form input:focus::placeholder,
+    .cabinet-request-form textarea:focus::placeholder {
+      color: transparent;
+    }
+    .cabinet-request-form__hint,
+    .cabinet-request-form__status {
+      margin: 0;
+      color: var(--fg-muted);
+      font-size: 0.84rem;
+      line-height: 1.5;
+    }
+    .cabinet-request-form__status {
+      min-height: 1.2em;
+      font-weight: 800;
+    }
+    .cabinet-request-form__status.is-error {
+      color: #fca5a5;
+    }
+    .cabinet-request-form__status.is-success {
+      color: #6ee7d8;
+    }
+    .cabinet-data-item__actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    @media (max-width: 680px) {
+      .cabinet-page {
+        padding-inline: 16px;
+      }
+      .cabinet-status,
+      .cabinet-section__header {
+        grid-template-columns: 1fr;
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .cabinet-role-card__actions {
+        justify-content: stretch;
+      }
+      .cabinet-action {
+        width: 100%;
+      }
+      .cabinet-guide {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .cabinet-guide__button {
+        width: 100%;
+      }
+      .cabinet-view-switch--master {
+        grid-template-columns: 1fr;
+        align-items: stretch;
+      }
+      .cabinet-view-switch__copy {
+        min-width: 0;
+      }
+      .cabinet-view-switch__buttons,
+      .cabinet-view-switch__buttons .cabinet-view-switch__button {
+        width: 100%;
+      }
+      .cabinet-data-stats {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+    @media (max-width: 980px) {
+      .cabinet-role-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+    @media (max-width: 640px) {
+      .cabinet-role-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .cabinet-action {
+        transition-duration: 0.001ms !important;
+      }
+    }
+  </style>
+</head>
+<body class="calendar-page">
+  <div class="cal-bg">
+    <div class="cal-bg__orb cal-bg__orb--blue"></div>
+    <div class="cal-bg__orb cal-bg__orb--green"></div>
+    <div class="cal-bg__orb cal-bg__orb--yellow"></div>
+    <div class="cal-bg__noise"></div>
+  </div>
+
+  <!-- Fixed Top Logo -->
+  <a href="index.html" class="top-logo-container" aria-label="На главную" title="На главную" style="pointer-events: auto;">
+    <svg viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg" class="top-logo-svg">
+      <g stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="100" cy="90" r="50" />
+        <line x1="100" y1="15" x2="100" y2="30" />
+        <line x1="135" y1="25" x2="125" y2="40" />
+        <line x1="165" y1="50" x2="150" y2="60" />
+        <line x1="180" y1="90" x2="165" y2="90" />
+        <line x1="65" y1="25" x2="75" y2="40" />
+        <line x1="35" y1="50" x2="50" y2="60" />
+        <line x1="20" y1="90" x2="35" y2="90" />
+        <circle cx="118" cy="30" r="1.5" fill="currentColor" stroke="none"/>
+        <circle cx="145" cy="45" r="1.5" fill="currentColor" stroke="none"/>
+        <circle cx="165" cy="70" r="1.5" fill="currentColor" stroke="none"/>
+        <circle cx="82" cy="30" r="1.5" fill="currentColor" stroke="none"/>
+        <circle cx="55" cy="45" r="1.5" fill="currentColor" stroke="none"/>
+        <circle cx="35" cy="70" r="1.5" fill="currentColor" stroke="none"/>
+        <circle cx="100" cy="80" r="14" />
+        <path d="M100 70 Q105 76 100 87 Q94 80 100 70" fill="currentColor" stroke="none"/>
+        <line x1="100" y1="65" x2="100" y2="40" />
+        <line x1="115" y1="80" x2="140" y2="80" />
+        <line x1="85" y1="80" x2="60" y2="80" />
+        <line x1="110" y1="70" x2="130" y2="55" />
+        <line x1="90" y1="70" x2="70" y2="55" />
+        <line x1="112" y1="90" x2="135" y2="95" />
+        <line x1="88" y1="90" x2="65" y2="95" />
+        <line x1="52" y1="105" x2="148" y2="105" />
+        <path d="M98 105 Q115 115 90 125 T95 140 L105 140 Q85 125 110 115 T103 105 Z" fill="currentColor" stroke="none" />
+        <line x1="55" y1="115" x2="90" y2="115" />
+        <line x1="115" y1="115" x2="145" y2="115" />
+        <line x1="65" y1="125" x2="80" y2="125" />
+        <line x1="125" y1="125" x2="140" y2="125" />
+      </g>
+      <text x="100" y="180" text-anchor="middle" font-family="Georgia, serif" font-weight="700" font-size="28" fill="currentColor" letter-spacing="2">SANTIAGO</text>
+      <text x="100" y="205" text-anchor="middle" font-family="Inter, sans-serif" font-weight="700" font-size="14" fill="currentColor" letter-spacing="6">WAY</text>
+    </svg>
+  </a>
+
+  <!-- Shop Link -->
+  <a href="shop.html" class="home-icon" aria-label="Магазин" title="Магазин">
+    <svg viewBox="0 0 24 24" width="34" height="34" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="svg-home">
+      <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <path d="M16 10a4 4 0 0 1-8 0"></path>
+    </svg>
+  </a>
+
+  <!-- Desktop Controls -->
+  <div class="desktop-controls">
+    <a href="cabinet.html" class="cabinet-btn" title="Cabinet" style="display: none;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+    </a>
+
+    <a href="https://t.me/santioago_bot" target="_blank" rel="noopener noreferrer" class="tg-login-btn" title="Login via Telegram">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2L2 11l8 3 3 8z"/></svg>
+      <span class="tg-text">Login via Telegram</span>
+    </a>
+
+    <div class="lang-switcher">
+      <button class="lang-btn" data-lang="en">EN</button>
+      <button class="lang-btn" data-lang="cz">CZ</button>
+      <button class="lang-btn" data-lang="ru">RU</button>
+      <button class="lang-btn" data-lang="ua">UA</button>
+    </div>
+
+    <button class="theme-toggle theme-toggle-btn" title="Toggle theme">
+      <span class="icon-sun">☀️</span>
+      <span class="icon-moon">🌙</span>
+      <span class="toggle-thumb"></span>
+    </button>
+    
+    <button class="menu-trigger" aria-label="Open menu">☰</button>
+  </div>
+
+  <main class="cabinet-page">
+    <section class="cabinet-guide" aria-label="Cabinet guide">
+      <div class="cabinet-guide__text">
+        <h1 class="cabinet-guide__title">Особистий простір Santiago</h1>
+        <span>Тут зібрані збережені події, майстри, послуги та майбутні підписки.</span>
+      </div>
+    </section>
+
+    <div class="cabinet-shell">
+      <section class="cabinet-status" aria-label="Поточний доступ">
+        <div class="cabinet-status__content">
+          <div class="cabinet-status__line">
+            <span id="cabinet-role-badge" class="cabinet-role-badge cabinet-role-badge--visitor">Visitor</span>
+            <p id="cabinet-role-title" class="cabinet-status__title">Особистий простір</p>
+          </div>
+          <p id="cabinet-role-text" class="cabinet-status__text">Увійдіть через Telegram, щоб кабінет підтягнув вашу роль і персональні розділи.</p>
+          <div class="cabinet-view-switch" data-cabinet-view-switch="admin" hidden aria-label="Admin view switch">
+            <button class="cabinet-view-switch__button" type="button" data-cabinet-view="visitor">Visitor</button>
+            <button class="cabinet-view-switch__button" type="button" data-cabinet-view="resident">Club member</button>
+            <button class="cabinet-view-switch__button" type="button" data-cabinet-view="instructor">Master</button>
+            <button class="cabinet-view-switch__button is-active" type="button" data-cabinet-view="admin">Admin</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="cabinet-section" data-role-section data-roles="guest" aria-labelledby="cabinet-login-title">
+        <div class="cabinet-section__header">
+          <div class="cabinet-section__header-text">
+            <span class="cabinet-section__eyebrow">Login</span>
+            <h2 id="cabinet-login-title">Почніть з Telegram-входу</h2>
+            <p>Кабінет відкриває персональні блоки тільки після того, як бот передасть сайту ваш профіль Santiago.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="cabinet-section" data-role-section data-roles="visitor resident instructor" aria-labelledby="cabinet-personal-title" hidden>
+        <div class="cabinet-section__header">
+          <div class="cabinet-section__header-text">
+            <span class="cabinet-section__eyebrow">Personal</span>
+            <h2 id="cabinet-personal-title">Мій простір</h2>
+            <p id="cabinet-personal-text">Базові речі для користувачів: збережене, записи, нагадування і швидкий перехід до подій та послуг.</p>
+          </div>
+        </div>
+        <div class="cabinet-role-grid">
+          <article class="cabinet-role-card">
+            <div class="cabinet-role-card__top">
+              <span class="cabinet-role-card__icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M19 21 12 17 5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2Z"></path>
+                </svg>
+              </span>
+            </div>
+            <h3>Обране</h3>
+            <p>Збережені події, послуги, майстри та майбутні типи контенту з платформи.</p>
+            <div class="cabinet-role-card__actions">
+              <a class="cabinet-action" href="#cabinet-favorites-title">До обраного</a>
+            </div>
+          </article>
+
+          <article class="cabinet-role-card">
+            <div class="cabinet-role-card__top">
+              <span class="cabinet-role-card__icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 7h18s-3 0-3-7"></path>
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                </svg>
+              </span>
+            </div>
+            <h3>Нагадування</h3>
+            <p>Події з обраного вже готують Telegram-нагадування за 24 години і за 3 години до старту.</p>
+            <div class="cabinet-role-card__actions">
+              <a class="cabinet-action" href="events.html">Події</a>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="cabinet-section" data-role-section data-roles="resident instructor" aria-labelledby="cabinet-club-title" hidden>
+        <div class="cabinet-section__header">
+          <div class="cabinet-section__header-text">
+            <span class="cabinet-section__eyebrow">Club</span>
+            <h2 id="cabinet-club-title">Клуб Santiago</h2>
+            <p>Розділ для учасників клубу: події, участь і швидкий перехід до календаря.</p>
+          </div>
+        </div>
+        <div class="cabinet-role-grid">
+          <article class="cabinet-role-card cabinet-role-card--club">
+            <div class="cabinet-role-card__top">
+              <span class="cabinet-role-card__icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+                  <path d="M16 2v4"></path>
+                  <path d="M8 2v4"></path>
+                  <path d="M3 10h18"></path>
+                </svg>
+              </span>
+            </div>
+            <h3>Клубні події</h3>
+            <p>Наступним кроком підключимо вибірку club events і компактний список доступних подій.</p>
+            <div class="cabinet-role-card__actions">
+              <a class="cabinet-action" href="events.html">Дивитись події</a>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="cabinet-section" data-role-section data-roles="visitor resident instructor" aria-labelledby="cabinet-bookings-title" hidden>
+        <div class="cabinet-section__header">
+          <div class="cabinet-section__header-text">
+            <span class="cabinet-section__eyebrow">Bookings</span>
+            <h2 id="cabinet-bookings-title">Мої записи</h2>
+            <p>Тут видно тільки ваші власні заявки на події. Публічний статус “я прийду” живе на сторінці події.</p>
+          </div>
+        </div>
+        <div class="cabinet-data-panel">
+          <h3 class="cabinet-data-panel__title">Статуси записів</h3>
+          <div id="cabinet-bookings-list" class="cabinet-data-list">
+            <div class="favorites-empty">Завантажуємо записи...</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="cabinet-section cabinet-section--master" data-master-shell aria-labelledby="cabinet-master-title" hidden>
+        <div class="cabinet-section__header">
+          <div class="cabinet-section__header-text">
+            <span class="cabinet-section__eyebrow">Master</span>
+            <h2 id="cabinet-master-title">Кабінет майстра</h2>
+            <p id="cabinet-master-text">Робоча зона для профілю, послуг, подій і проєктів. Майстер може почати дію з кабінету або календаря.</p>
+          </div>
+        </div>
+        <div class="cabinet-view-switch cabinet-view-switch--master" data-cabinet-view-switch="master" hidden aria-label="Master cabinet view switch">
+          <div class="cabinet-view-switch__copy">
+            <strong id="cabinet-master-switch-title">Кабінет майстра — ваші інструменти</strong>
+            <span id="cabinet-master-switch-text">Тут зібрані профіль, послуги, події та проєкти. Нові запити надсилаються адміну в Telegram.</span>
+          </div>
+          <div class="cabinet-view-switch__buttons">
+            <button class="cabinet-view-switch__button is-active" type="button" data-cabinet-view="instructor">Master tools</button>
+            <button class="cabinet-view-switch__button" type="button" data-cabinet-view="resident">Member view</button>
+          </div>
+        </div>
+        <div data-role-section data-roles="instructor admin">
+        <div class="cabinet-role-grid">
+          <article class="cabinet-role-card cabinet-role-card--mentor" data-master-card-link="profile-andrij.html" tabindex="0" aria-label="Відкрити профіль майстра">
+            <div class="cabinet-role-card__top">
+              <span class="cabinet-role-card__icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 20h9"></path>
+                  <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path>
+                </svg>
+              </span>
+            </div>
+            <h3>Профіль майстра</h3>
+            <p>Відкрийте публічний профіль Andrij Pýcha або надішліть адміну текст для оновлення опису.</p>
+            <div class="cabinet-role-card__actions">
+              <button class="cabinet-action" type="button" data-master-request="profile">Заявка на правку</button>
+            </div>
+          </article>
+
+          <article class="cabinet-role-card cabinet-role-card--mentor" data-master-card-link="services.html?provider=andrijpycha&mine=1" tabindex="0" aria-label="Відкрити мої послуги">
+            <div class="cabinet-role-card__top">
+              <span class="cabinet-role-card__icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 7h-9"></path>
+                  <path d="M14 17H5"></path>
+                  <circle cx="17" cy="17" r="3"></circle>
+                  <circle cx="7" cy="7" r="3"></circle>
+                </svg>
+              </span>
+            </div>
+            <h3>Послуги</h3>
+            <p>Відкрийте сторінку послуг з увімкненим фільтром Andrij Pýcha або створіть заявку на нову послугу.</p>
+            <div class="cabinet-role-card__actions">
+              <button class="cabinet-action" type="button" data-master-request="service">Нова послуга</button>
+            </div>
+          </article>
+
+          <article class="cabinet-role-card cabinet-role-card--mentor" data-master-card-link="events.html?mine=1&instructor=andrij" tabindex="0" aria-label="Відкрити мої події">
+            <div class="cabinet-role-card__top">
+              <span class="cabinet-role-card__icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M8 2v4"></path>
+                  <path d="M16 2v4"></path>
+                  <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+                  <path d="M3 10h18"></path>
+                  <path d="m9 16 2 2 4-4"></path>
+                </svg>
+              </span>
+            </div>
+            <h3>Події</h3>
+            <p>Відкрийте сторінку подій з фільтром “мої події” або створіть нову подію.</p>
+            <div class="cabinet-role-card__actions">
+              <button class="cabinet-action" type="button" data-master-request="event">Нова подія</button>
+            </div>
+          </article>
+
+          <article class="cabinet-role-card cabinet-role-card--mentor" data-master-card-link="projects.html?owner=andrijpycha&mine=1" tabindex="0" aria-label="Відкрити мої проєкти">
+            <div class="cabinet-role-card__top">
+              <span class="cabinet-role-card__icon">
+                <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M3 7h18"></path>
+                  <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  <rect x="5" y="7" width="14" height="14" rx="2"></rect>
+                  <path d="M9 13h6"></path>
+                  <path d="M9 17h4"></path>
+                </svg>
+              </span>
+            </div>
+            <h3>Проєкти</h3>
+            <p>Відкрийте проєкти з увімкненим фільтром Andrij Pýcha або надішліть нову ідею адміну.</p>
+            <div class="cabinet-role-card__actions">
+              <button class="cabinet-action" type="button" data-master-request="project">Новий проєкт</button>
+            </div>
+          </article>
+        </div>
+        <div class="cabinet-data-panel">
+          <h3 class="cabinet-data-panel__title">Мої заявки</h3>
+          <div id="cabinet-submissions-list" class="cabinet-data-list">
+            <div class="favorites-empty">Завантажуємо заявки...</div>
+          </div>
+        </div>
+        </div>
+      </section>
+
+      <section class="cabinet-section" data-role-section data-roles="admin" aria-labelledby="cabinet-admin-title" hidden>
+        <div class="cabinet-section__header">
+          <div class="cabinet-section__header-text">
+            <span class="cabinet-section__eyebrow">Admin</span>
+            <h2 id="cabinet-admin-title">Адмін-центр</h2>
+            <p>Адмінські заявки з платформи та бота приходять у Telegram.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <section class="cabinet-favorites" data-role-section data-roles="visitor resident instructor" aria-labelledby="cabinet-favorites-title" hidden>
+      <div class="cabinet-favorites__header">
+        <h2 id="cabinet-favorites-title">Обране</h2>
+        <p>Збережені події та послуги з платформи Santiago.</p>
+      </div>
+      <div id="cabinet-favorites-list" class="cabinet-favorites__list" data-favorites-cabinet>
+        <div class="favorites-empty">Завантажуємо обране...</div>
+      </div>
+    </section>
+  </main>
+
+  <div class="cabinet-info-popup" id="cabinet-request-popup" aria-hidden="true" role="dialog" aria-labelledby="cabinet-request-title">
+    <div class="cabinet-info-popup__panel">
+      <div class="cabinet-info-popup__top">
+        <h2 id="cabinet-request-title">Заявка майстра</h2>
+        <button class="cabinet-info-popup__close" type="button" data-master-request-close aria-label="Close">×</button>
+      </div>
+      <form class="cabinet-request-form" id="cabinet-request-form">
+        <input type="hidden" id="cabinet-request-kind" />
+        <p class="cabinet-request-form__hint" id="cabinet-request-hint">Опишіть, що треба створити або змінити. Адмін отримає текст у Telegram-боті.</p>
+        <label id="cabinet-request-title-wrap">
+          Назва
+          <input id="cabinet-request-title-input" name="title" autocomplete="off" />
+        </label>
+        <label>
+          Текст для адміна
+          <textarea id="cabinet-request-text" name="details" required></textarea>
+        </label>
+        <p class="cabinet-request-form__status" id="cabinet-request-status" aria-live="polite"></p>
+        <button class="cabinet-action cabinet-action--full" id="cabinet-request-submit" type="submit">Надіслати адміну</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Quick-menu panel -->
+
+  <nav class="quick-menu" aria-label="Navigation">
+    <ul>
+      <li><a href="index.html" data-i18n="nav.home">Главная</a></li>
+      <li><a href="services.html" data-i18n="nav.offers">Продукты и услуги</a></li>
+      <li><a href="events.html" data-i18n="nav.events">События</a></li>
+      <li><a href="masters.html" data-i18n="nav.partners">Партнёры</a></li>
+      <li><a href="projects.html" data-i18n="nav.projects">Проекты</a></li>
+      <li><a href="space.html" data-i18n="nav.spaces">Пространства</a></li>
+      <li><a href="community.html" data-i18n="nav.club">Клуб</a></li>
+      <li><a href="openmic.html" data-i18n="nav.openmic">Open Mic</a></li>
+      <li><a href="shop.html" data-i18n="nav.shop">Shop</a></li>
+    </ul>
+
+    <div class="menu-controls">
+      <a href="https://t.me/santioago_bot" target="_blank" rel="noopener noreferrer" class="tg-login-btn" style="width: 100%; justify-content: center; margin-bottom: 1rem;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2L2 11l8 3 3 8z"/></svg>
+        <span class="tg-text">Login via Telegram</span>
+      </a>
+
+      <div class="lang-switcher">
+        <button class="lang-btn" data-lang="en">EN</button>
+        <button class="lang-btn" data-lang="cz">CZ</button>
+        <button class="lang-btn" data-lang="ru">RU</button>
+        <button class="lang-btn" data-lang="ua">UA</button>
+      </div>
+
+      <button class="theme-toggle theme-toggle-btn" title="Toggle theme">
+        <span class="icon-sun">☀️</span>
+        <span class="icon-moon">🌙</span>
+        <span class="toggle-thumb"></span>
+      </button>
+    </div>
+  </nav>
+
+  <script src="translations.js?v=10"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="public-config.js?v=1"></script>
+  <script src="auth.js?v=6"></script>
+  <script src="menu.js?v=10"></script>
+  <script src="favorites.js?v=2"></script>
+  <script src="cabinet.js?v=12"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const body = document.body;
+      const themeToggles = document.querySelectorAll('.theme-toggle-btn');
+
+      function syncThemeToggles() {
+        const isNight = body.classList.contains('grayscale-mode');
+        themeToggles.forEach((toggle) => {
+          toggle.setAttribute('aria-pressed', String(isNight));
+        });
+      }
+
+      if (localStorage.getItem('grayscale') === 'enabled') {
+        body.classList.add('grayscale-mode');
+      }
+
+      themeToggles.forEach((toggle) => {
+        toggle.addEventListener('click', () => {
+          body.classList.toggle('grayscale-mode');
+          localStorage.setItem('grayscale', body.classList.contains('grayscale-mode') ? 'enabled' : 'disabled');
+          syncThemeToggles();
+        });
+      });
+      syncThemeToggles();
+
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        const requestPopup = document.getElementById('cabinet-request-popup');
+        if (requestPopup) {
+          requestPopup.classList.remove('open');
+          requestPopup.setAttribute('aria-hidden', 'true');
+        }
+      }
+    });
+  </script>
+</body>
+</html>

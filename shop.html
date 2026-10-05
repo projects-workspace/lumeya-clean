@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Legacy Santiago shop page, preserved outside Lumeya's primary Public Discovery navigation.">
+  <title>Santiago shop (legacy) — Lumeya</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    /* Shop-specific styles */
+    .shop-header {
+      text-align: center;
+      padding: 5rem 1rem 2rem;
+      background: linear-gradient(135deg, #0a0c1c, #181f3a);
+    }
+    .shop-header h1 {
+      font-size: 2.6rem;
+      font-weight: 700;
+      color: #f7f7f7;
+      margin-bottom: 0.5rem;
+    }
+    .shop-header p {
+      font-size: 1.15rem;
+      color: #b0b0d0;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .shop-categories {
+      padding: 2rem 1rem 4rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .category-section {
+      margin-bottom: 3rem;
+      display: block; /* Override global section flex centering */
+      width: 100%;
+    }
+    .category-section h2 {
+      font-size: 1.6rem;
+      color: #ffcc00;
+      margin-bottom: 1rem;
+      padding-left: 0.5rem;
+      border-left: 3px solid #ffcc00;
+      text-align: left; /* Override global section h2 center */
+    }
+
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1rem;
+    }
+
+    .product-card {
+      background: rgba(0, 255, 204, 0.05);
+      border-radius: 14px;
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(0, 255, 204, 0.3);
+      padding: 1.5rem;
+      box-shadow: 0 4px 15px rgba(0, 255, 204, 0.1), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+      transition: transform 0.3s, box-shadow 0.3s, border 0.3s;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    .product-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 25px rgba(0, 255, 204, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(0, 255, 204, 0.5);
+    }
+    body.grayscale-mode .product-card {
+      background: rgba(20, 20, 40, 0.6);
+      border: 1px solid rgba(0, 255, 204, 0.3);
+    }
+
+    .product-emoji {
+      font-size: 2.4rem;
+      margin-bottom: 0.3rem;
+    }
+
+    .product-card h3 {
+      font-size: 1.15rem;
+      color: #a0a0ff;
+      margin: 0;
+    }
+    .product-card p {
+      font-size: 0.92rem;
+      color: #a0a0c0;
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    .product-price {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #ffcc00;
+      margin-top: auto;
+      padding-top: 0.5rem;
+    }
+
+  </style>
+</head>
+<body>
+  <!-- Fixed Top Logo -->
+  <a href="index.html" class="top-logo-container" aria-label="На главную" title="На главную" style="pointer-events: auto;">
+    <svg viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg" class="top-logo-svg">
+      <g stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="100" cy="90" r="50" />
+        <line x1="100" y1="15" x2="100" y2="30" />
+        <line x1="135" y1="25" x2="125" y2="40" />
+        <line x1="165" y1="50" x2="150" y2="60" />
+        <line x1="180" y1="90" x2="165" y2="90" />
+        <line x1="65" y1="25" x2="75" y2="40" />
+        <line x1="35" y1="50" x2="50" y2="60" />
+        <line x1="20" y1="90" x2="35" y2="90" />
+        <circle cx="118" cy="30" r="1.5" fill="currentColor" stroke="none"/>
+        <circle cx="145" cy="45" r="1.5" fill="currentColor" stroke="none"/>
+        <circle cx="165" cy="70" r="1.5" fill="currentColor" stroke="none"/>
+        <circle cx="82" cy="30" r="1.5" fill="currentColor" stroke="none"/>
+        <circle cx="55" cy="45" r="1.5" fill="currentColor" stroke="none"/>
+        <circle cx="35" cy="70" r="1.5" fill="currentColor" stroke="none"/>
+        <circle cx="100" cy="80" r="14" />
+        <path d="M100 70 Q105 76 100 87 Q94 80 100 70" fill="currentColor" stroke="none"/>
+        <line x1="100" y1="65" x2="100" y2="40" />
+        <line x1="115" y1="80" x2="140" y2="80" />
+        <line x1="85" y1="80" x2="60" y2="80" />
+        <line x1="110" y1="70" x2="130" y2="55" />
+        <line x1="90" y1="70" x2="70" y2="55" />
+        <line x1="112" y1="90" x2="135" y2="95" />
+        <line x1="88" y1="90" x2="65" y2="95" />
+        <line x1="52" y1="105" x2="148" y2="105" />
+        <path d="M98 105 Q115 115 90 125 T95 140 L105 140 Q85 125 110 115 T103 105 Z" fill="currentColor" stroke="none" />
+        <line x1="55" y1="115" x2="90" y2="115" />
+        <line x1="115" y1="115" x2="145" y2="115" />
+        <line x1="65" y1="125" x2="80" y2="125" />
+        <line x1="125" y1="125" x2="140" y2="125" />
+      </g>
+      <text x="100" y="180" text-anchor="middle" font-family="Georgia, serif" font-weight="700" font-size="28" fill="currentColor" letter-spacing="2">SANTIAGO</text>
+      <text x="100" y="205" text-anchor="middle" font-family="Inter, sans-serif" font-weight="700" font-size="14" fill="currentColor" letter-spacing="6">WAY</text>
+    </svg>
+  </a>
+
+  <!-- Desktop Controls -->
+  <div class="desktop-controls">
+    <a href="https://t.me/santioago_bot" target="_blank" rel="noopener noreferrer" class="tg-login-btn" title="Login via Telegram">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2L2 11l8 3 3 8z"/></svg>
+      <span class="tg-text">Login via Telegram</span>
+    </a>
+
+    <div class="lang-switcher">
+      <button class="lang-btn" data-lang="en">EN</button>
+      <button class="lang-btn" data-lang="cz">CZ</button>
+      <button class="lang-btn" data-lang="ru">RU</button>
+      <button class="lang-btn" data-lang="ua">UA</button>
+    </div>
+
+    <button class="theme-toggle theme-toggle-btn" title="Toggle theme">
+      <span class="icon-sun">☀️</span>
+      <span class="icon-moon">🌙</span>
+      <span class="toggle-thumb"></span>
+    </button>
+    
+    <button class="menu-trigger" aria-label="Open menu">☰</button>
+  </div>
+
+  <header class="shop-header">
+    <h1 data-i18n="shop.header.title">Магазин Сантьяго</h1>
+    <p data-i18n="shop.header.desc">Продукты наших резидентов и партнёров — рукоделие, здоровое питание, экотовары и многое другое.</p>
+  </header>
+
+  <main class="shop-categories">
+
+    <!-- Handmade / Crafts -->
+    <section class="category-section">
+      <h2 data-i18n="shop.cat.crafts">🧶 Рукоделие</h2>
+      <div class="product-grid">
+        <div class="product-card">
+          <span class="product-emoji">🧣</span>
+          <h3 data-i18n="shop.c1.title">Вязаный шарф ручной работы</h3>
+          <p data-i18n="shop.c1.desc">Натуральная шерсть, тёплый и уютный.</p>
+          <div class="product-price">450 Kč</div>
+        </div>
+        <div class="product-card">
+          <span class="product-emoji">🕯️</span>
+          <h3 data-i18n="shop.c2.title">Ароматическая свеча</h3>
+          <p data-i18n="shop.c2.desc">Соевый воск, эфирные масла лаванды.</p>
+          <div class="product-price">280 Kč</div>
+        </div>
+        <div class="product-card">
+          <span class="product-emoji">🪡</span>
+          <h3 data-i18n="shop.c3.title">Вышивка на холсте</h3>
+          <p data-i18n="shop.c3.desc">Авторская работа, мандала-мотив.</p>
+          <div class="product-price">650 Kč</div>
+        </div>
+        <div class="product-card">
+          <span class="product-emoji">📿</span>
+          <h3 data-i18n="shop.c4.title">Браслет из натуральных камней</h3>
+          <p data-i18n="shop.c4.desc">Аметист, розовый кварц, тигровый глаз.</p>
+          <div class="product-price">320 Kč</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Healthy Food -->
+    <section class="category-section">
+      <h2 data-i18n="shop.cat.food">🥗 Здоровое питание</h2>
+      <div class="product-grid">
+        <div class="product-card">
+          <span class="product-emoji">🍯</span>
+          <h3 data-i18n="shop.f1.title">Натуральный мёд</h3>
+          <p data-i18n="shop.f1.desc">Домашний мёд из чешских лугов, 500 г.</p>
+          <div class="product-price">220 Kč</div>
+        </div>
+        <div class="product-card">
+          <span class="product-emoji">🌿</span>
+          <h3 data-i18n="shop.f2.title">Травяной чай «Спокойствие»</h3>
+          <p data-i18n="shop.f2.desc">Мята, мелисса, ромашка. 100 г.</p>
+          <div class="product-price">180 Kč</div>
+        </div>
+        <div class="product-card">
+          <span class="product-emoji">🥜</span>
+          <h3 data-i18n="shop.f3.title">Ореховая гранола</h3>
+          <p data-i18n="shop.f3.desc">Без сахара, с кокосом и ягодами, 350 г.</p>
+          <div class="product-price">160 Kč</div>
+        </div>
+        <div class="product-card">
+          <span class="product-emoji">🫒</span>
+          <h3 data-i18n="shop.f4.title">Оливковое масло Extra Virgin</h3>
+          <p data-i18n="shop.f4.desc">Холодный отжим, Греция, 500 мл.</p>
+          <div class="product-price">350 Kč</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Eco & Wellness -->
+    <section class="category-section">
+      <h2 data-i18n="shop.cat.eco">🌱 Эко и велнес</h2>
+      <div class="product-grid">
+        <div class="product-card">
+          <span class="product-emoji">🧴</span>
+          <h3 data-i18n="shop.e1.title">Натуральный шампунь</h3>
+          <p data-i18n="shop.e1.desc">Без SLS, с маслом арганы, 250 мл.</p>
+          <div class="product-price">290 Kč</div>
+        </div>
+        <div class="product-card">
+          <span class="product-emoji">🧘</span>
+          <h3 data-i18n="shop.e2.title">Коврик для йоги</h3>
+          <p data-i18n="shop.e2.desc">Пробковый, экологичный, нескользящий.</p>
+          <div class="product-price">890 Kč</div>
+        </div>
+        <div class="product-card">
+          <span class="product-emoji">🪥</span>
+          <h3 data-i18n="shop.e3.title">Бамбуковая зубная щётка</h3>
+          <p data-i18n="shop.e3.desc">Набор 4 шт., биоразлагаемая.</p>
+          <div class="product-price">120 Kč</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Digital Products -->
+    <section class="category-section">
+      <h2 data-i18n="shop.cat.digital">💻 Цифровые продукты</h2>
+      <div class="product-grid">
+        <div class="product-card">
+          <span class="product-emoji">🎮</span>
+          <h3 data-i18n="shop.d1.title">Социальная игра «Эхо»</h3>
+          <p data-i18n="shop.d1.desc">Цифровая версия нашей авторской игры.</p>
+          <div class="product-price">390 Kč</div>
+        </div>
+        <div class="product-card">
+          <span class="product-emoji">📱</span>
+          <h3 data-i18n="shop.d2.title">Гайд по детокс-протоколу</h3>
+          <p data-i18n="shop.d2.desc">Пошаговое руководство, PDF.</p>
+          <div class="product-price">250 Kč</div>
+        </div>
+        <div class="product-card">
+          <span class="product-emoji">🎧</span>
+          <h3 data-i18n="shop.d3.title">Медитации (аудио-пакет)</h3>
+          <p data-i18n="shop.d3.desc">10 сессий по 15 минут, MP3.</p>
+          <div class="product-price">320 Kč</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Services -->
+    <section class="category-section">
+      <h2 data-i18n="shop.cat.services">🤲 Услуги</h2>
+      <div class="product-grid">
+        <div class="product-card">
+          <span class="product-emoji">💆</span>
+          <h3 data-i18n="shop.s1.title">Массаж</h3>
+          <p data-i18n="shop.s1.desc">Классический, расслабляющий или спортивный. 60 мин.</p>
+          <div class="product-price">800 Kč</div>
+        </div>
+        <div class="product-card">
+          <span class="product-emoji">🧭</span>
+          <h3 data-i18n="shop.s2.title">Менторство</h3>
+          <p data-i18n="shop.s2.desc">Индивидуальная сессия с ментором — бизнес, жизнь, цели. 90 мин.</p>
+          <div class="product-price">600 Kč</div>
+        </div>
+        <div class="product-card">
+          <span class="product-emoji">🧘‍♂️</span>
+          <h3 data-i18n="shop.s3.title">Коллективная медитация</h3>
+          <p data-i18n="shop.s3.desc">Групповая практика осознанности. Каждое воскресенье, 60 мин.</p>
+          <div class="product-price">150 Kč</div>
+        </div>
+        <div class="product-card">
+          <span class="product-emoji">🏋️</span>
+          <h3 data-i18n="shop.s4.title">Йога и тренировки</h3>
+          <p data-i18n="shop.s4.desc">Хатха-йога, стретчинг, функциональный тренинг. 75 мин.</p>
+          <div class="product-price">200 Kč</div>
+        </div>
+        <div class="product-card">
+          <span class="product-emoji">🎲</span>
+          <h3 data-i18n="shop.s5.title">Социальные игры</h3>
+          <p data-i18n="shop.s5.desc">Настольные и авторские игры для нетворкинга. Вечер.</p>
+          <div class="product-price">250 Kč</div>
+        </div>
+        <div class="product-card">
+          <span class="product-emoji">🎤</span>
+          <h3 data-i18n="shop.s6.title">Лекции и мастер-классы</h3>
+          <p data-i18n="shop.s6.desc">Тематические встречи — питание, психология, бизнес.</p>
+          <div class="product-price">300 Kč</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Quick-menu panel -->
+  <nav class="quick-menu" aria-label="Navigation">
+    <ul>
+      <li><a href="index.html" data-i18n="nav.home">Главная</a></li>
+      <li><a href="services.html" data-i18n="nav.offers">Продукты и услуги</a></li>
+      <li><a href="events.html" data-i18n="nav.events">События</a></li>
+      <li><a href="masters.html" data-i18n="nav.partners">Партнёры</a></li>
+      <li><a href="projects.html" data-i18n="nav.projects">Проекты</a></li>
+      <li><a href="space.html" data-i18n="nav.spaces">Пространства</a></li>
+      <li><a href="community.html" data-i18n="nav.club">Клуб</a></li>
+      <li><a href="openmic.html" data-i18n="nav.openmic">Open Mic</a></li>
+      <li><a href="shop.html" data-i18n="nav.shop">Shop</a></li>
+    </ul>
+
+    <div class="menu-controls">
+      <a href="https://t.me/santioago_bot" target="_blank" rel="noopener noreferrer" class="tg-login-btn" style="width: 100%; justify-content: center; margin-bottom: 1rem;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2L2 11l8 3 3 8z"/></svg>
+        <span class="tg-text">Login via Telegram</span>
+      </a>
+
+      <div class="lang-switcher">
+        <button class="lang-btn" data-lang="en">EN</button>
+        <button class="lang-btn" data-lang="cz">CZ</button>
+        <button class="lang-btn" data-lang="ru">RU</button>
+        <button class="lang-btn" data-lang="ua">UA</button>
+      </div>
+
+      <button class="theme-toggle theme-toggle-btn" title="Toggle theme">
+        <span class="icon-sun">☀️</span>
+        <span class="icon-moon">🌙</span>
+        <span class="toggle-thumb"></span>
+      </button>
+    </div>
+  </nav>
+
+  <footer class="footer">
+    <p data-i18n="footer.text">© 2026 Сантьяго – Цифровой Дзен. Все права защищены.</p>
+  </footer>
+
+  <script src="translations.js?v=10"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="public-config.js?v=1"></script>
+  <script src="auth.js?v=6"></script>
+  <script src="menu.js?v=10"></script>
+  <script>
+    const themeToggles = document.querySelectorAll('.theme-toggle-btn');
+    const body = document.body;
+
+    if (localStorage.getItem('grayscale') === 'enabled') {
+      body.classList.add('grayscale-mode');
+    }
+
+    themeToggles.forEach(toggle => {
+      toggle.addEventListener('click', () => {
+        body.classList.toggle('grayscale-mode');
+        localStorage.setItem('grayscale', body.classList.contains('grayscale-mode') ? 'enabled' : 'disabled');
+      });
+    });
+  </script>
+</body>
+</html>

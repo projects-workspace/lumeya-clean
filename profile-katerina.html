@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Katerina works with body practices, aromatherapy, wellness retreats and visual production in Czechia." />
+  <title>Katerina — Practitioner — Lumeya</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body data-practitioner="katerina">
+  <!-- Global Background Clouds -->
+  <div class="bg-clouds">
+    <div class="cloud-global c1"></div>
+    <div class="cloud-global c2"></div>
+    <div class="cloud-global c3"></div>
+  </div>
+
+  <!-- Fixed Top Logo -->
+  <a href="index.html" class="top-logo-container" aria-label="На главную" title="На главную">
+    <svg viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg" class="top-logo-svg">
+      <g stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="100" cy="90" r="50" />
+        <line x1="100" y1="15" x2="100" y2="30" />
+        <line x1="135" y1="25" x2="125" y2="40" />
+        <line x1="165" y1="50" x2="150" y2="60" />
+        <line x1="180" y1="90" x2="165" y2="90" />
+        <line x1="65" y1="25" x2="75" y2="40" />
+        <line x1="35" y1="50" x2="50" y2="60" />
+        <line x1="20" y1="90" x2="35" y2="90" />
+        <circle cx="118" cy="30" r="1.5" fill="currentColor" stroke="none"/>
+        <circle cx="145" cy="45" r="1.5" fill="currentColor" stroke="none"/>
+        <circle cx="165" cy="70" r="1.5" fill="currentColor" stroke="none"/>
+        <circle cx="82" cy="30" r="1.5" fill="currentColor" stroke="none"/>
+        <circle cx="55" cy="45" r="1.5" fill="currentColor" stroke="none"/>
+        <circle cx="35" cy="70" r="1.5" fill="currentColor" stroke="none"/>
+        <circle cx="100" cy="80" r="14" />
+        <path d="M100 70 Q105 76 100 87 Q94 80 100 70" fill="currentColor" stroke="none"/>
+        <line x1="100" y1="65" x2="100" y2="40" />
+        <line x1="115" y1="80" x2="140" y2="80" />
+        <line x1="85" y1="80" x2="60" y2="80" />
+        <line x1="110" y1="70" x2="130" y2="55" />
+        <line x1="90" y1="70" x2="70" y2="55" />
+        <line x1="112" y1="90" x2="135" y2="95" />
+        <line x1="88" y1="90" x2="65" y2="95" />
+        <line x1="52" y1="105" x2="148" y2="105" />
+        <path d="M98 105 Q115 115 90 125 T95 140 L105 140 Q85 125 110 115 T103 105 Z" fill="currentColor" stroke="none" />
+        <line x1="55" y1="115" x2="90" y2="115" />
+        <line x1="115" y1="115" x2="145" y2="115" />
+        <line x1="65" y1="125" x2="80" y2="125" />
+        <line x1="125" y1="125" x2="140" y2="125" />
+      </g>
+      <text x="100" y="180" text-anchor="middle" font-family="Georgia, serif" font-weight="700" font-size="28" fill="currentColor" letter-spacing="2">SANTIAGO</text>
+      <text x="100" y="205" text-anchor="middle" font-family="Inter, sans-serif" font-weight="700" font-size="14" fill="currentColor" letter-spacing="6">WAY</text>
+    </svg>
+  </a>
+
+  <!-- Shop Link -->
+  <a href="shop.html" class="home-icon" aria-label="Магазин" title="Магазин">
+    <svg viewBox="0 0 24 24" width="34" height="34" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="svg-home">
+      <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+      <line x1="3" y1="6" x2="21" y2="6"></line>
+      <path d="M16 10a4 4 0 0 1-8 0"></path>
+    </svg>
+  </a>
+
+  <!-- Desktop Controls -->
+    <div class="desktop-controls">
+    <a href="https://t.me/santioago_bot" target="_blank" rel="noopener noreferrer" class="tg-login-btn" title="Login via Telegram">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2L2 11l8 3 3 8z"/></svg>
+      <span class="tg-text">Login via Telegram</span>
+    </a>
+
+    <div class="lang-switcher">
+      <button class="lang-btn" data-lang="en">EN</button>
+      <button class="lang-btn" data-lang="cz">CZ</button>
+      <button class="lang-btn" data-lang="ru">RU</button>
+      <button class="lang-btn" data-lang="ua">UA</button>
+    </div>
+
+    <button class="theme-toggle theme-toggle-btn" title="Toggle theme">
+      <span class="icon-sun">☀️</span>
+      <span class="icon-moon">🌙</span>
+      <span class="toggle-thumb"></span>
+    </button>
+    
+    <button class="menu-trigger" aria-label="Open menu">☰</button>
+  </div>
+
+  <!-- ═══ PAGE CONTENT ═══ -->
+  <div class="page-wrapper">
+
+    <!-- Profile Hero -->
+    <div class="profile-hero glass-card">
+      <h1 class="profile-name" data-i18n="kat.profile.name">Катерина</h1>
+      <p class="profile-title" data-i18n="kat.profile.title">Эксперт по телесным практикам и ароматерапии · Специалист визуального продакшена</p>
+      <p class="profile-bio" data-i18n="kat.profile.bio">Эксперт с 4-летним профессиональным опытом в Чехии. Совмещаю глубокое знание тела и движения с высококлассным визуальным продакшеном. Моя миссия — помогать людям чувствовать себя лучше через тело и создавать безупречный визуальный контент для бизнеса.</p>
+      <div class="profile-languages">
+        <span class="lang-icon">📍</span>
+        <span data-i18n="kat.profile.location">Чехия · 4 года профессионального опыта</span>
+      </div>
+    </div>
+
+    <!-- Wellness Expertise -->
+    <div class="profile-section">
+      <h2 data-i18n="kat.wellness.title">🌿 Wellness и работа с телом</h2>
+      <div class="spec-grid">
+        <div class="spec-card">
+          <span class="spec-icon">🧘‍♀️</span>
+          <h3 data-i18n="kat.spec1.title">Телесные практики и биомеханика</h3>
+          <p data-i18n="kat.spec1.desc">Пилатес, йога, миофасциальный релиз, функциональный тренинг, стретчинг, тверк. Экологичная работа с телом: снятие мышечных зажимов, восстановление подвижности суставов, коррекция осанки и лимфодренажные техники.</p>
+        </div>
+        <div class="spec-card">
+          <span class="spec-icon">🌸</span>
+          <h3 data-i18n="kat.spec2.title">Интегративная ароматерапия</h3>
+          <p data-i18n="kat.spec2.desc">Работа с премиальными эфирными маслами как инструмент для глубокого расслабления, управления уровнем стресса и восстановления энергетического ресурса.</p>
+        </div>
+        <div class="spec-card">
+          <span class="spec-icon">🧖‍♀️</span>
+          <h3 data-i18n="kat.spec3.title">Премиальные SPA-ретриты</h3>
+          <p data-i18n="kat.spec3.desc">Организация камерных комплексных мероприятий. Многоступенчатые программы: тренировки + сауна + арома-ритуалы. Коллаборация с нутрициологами и другими экспертами.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Visual Production Expertise -->
+    <div class="profile-section">
+      <h2 data-i18n="kat.production.title">🎥 Визуальный продакшен (B2B)</h2>
+      <div class="spec-grid">
+        <div class="spec-card">
+          <span class="spec-icon">🚁</span>
+          <h3 data-i18n="kat.spec4.title">Аэросъёмка и видеографика</h3>
+          <p data-i18n="kat.spec4.desc">Профессиональная съёмка с дрона. Визуальный контент для коммерческой недвижимости, музыкальных клипов, выездных ретритов и масштабных мероприятий.</p>
+        </div>
+        <div class="spec-card">
+          <span class="spec-icon">🏠</span>
+          <h3 data-i18n="kat.spec5.title">Home Staging и ИИ-визуализация</h3>
+          <p data-i18n="kat.spec5.desc">Комплексная подготовка объектов недвижимости к продаже/аренде. Виртуальный стейджинг с ИИ для визуализации интерьеров. Физическое декорирование реальных пространств.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Professional Qualities -->
+    <div class="profile-section">
+      <h2 data-i18n="kat.qualities.title">💼 Профессиональные качества</h2>
+      <div class="profile-detail-text" data-i18n="kat.qualities.text">Комплексный подход — способность видеть проект от идеи до финальной реализации. Ориентация на партнёрство: открытость к синергии с другими специалистами (психологами, риелторами, ивент-менеджерами). Высокие стандарты качества: фокус на премиальном сегменте — использование лучших материалов в wellness-практиках и передовых технологий в визуальном продакшене.</div>
+    </div>
+
+    <!-- Residency Note -->
+    <div class="profile-section">
+      <div class="profile-detail-text" data-i18n="kat.residency">Катерина является резидентом пространства «Студия Сантьяго» и активным участником экосистемы, объединяющей экспертов в области здоровья, творчества и развития.</div>
+    </div>
+
+    <!-- CTA Actions -->
+    <div class="profile-actions">
+      <a href="offer-katerina.html" class="cta-card">
+        <span class="cta-icon">🌿</span>
+        <span data-i18n="kat.cta.offer">Wellness-программы</span>
+      </a>
+      <a href="index.html#studio" class="cta-card">
+        <span class="cta-icon">📅</span>
+        <span data-i18n="kat.cta.schedule">Расписание и запись</span>
+      </a>
+      <a href="masters.html" class="cta-card">
+        <span class="cta-icon">👥</span>
+        <span data-i18n="kat.cta.masters">Все мастера</span>
+      </a>
+    </div>
+
+  </div>
+
+  <!-- Quick-menu panel -->
+
+  <section id="profile-discovery-data" aria-live="polite"></section>
+
+  <nav class="quick-menu" aria-label="Navigation">
+    <ul>
+      <li><a href="index.html" data-i18n="nav.home">Главная</a></li>
+      <li><a href="services.html" data-i18n="nav.offers">Продукты и услуги</a></li>
+      <li><a href="events.html" data-i18n="nav.events">События</a></li>
+      <li><a href="masters.html" data-i18n="nav.partners">Партнёры</a></li>
+      <li><a href="projects.html" data-i18n="nav.projects">Проекты</a></li>
+      <li><a href="space.html" data-i18n="nav.spaces">Пространства</a></li>
+      <li><a href="community.html" data-i18n="nav.club">Клуб</a></li>
+      <li><a href="openmic.html" data-i18n="nav.openmic">Open Mic</a></li>
+      <li><a href="shop.html" data-i18n="nav.shop">Shop</a></li>
+    </ul>
+
+    <div class="menu-controls">
+      <a href="https://t.me/santioago_bot" target="_blank" rel="noopener noreferrer" class="tg-login-btn" style="width: 100%; justify-content: center; margin-bottom: 1rem;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2L2 11l8 3 3 8z"/></svg>
+        <span class="tg-text">Login via Telegram</span>
+      </a>
+
+      <div class="lang-switcher">
+        <button class="lang-btn" data-lang="en">EN</button>
+        <button class="lang-btn" data-lang="cz">CZ</button>
+        <button class="lang-btn" data-lang="ru">RU</button>
+        <button class="lang-btn" data-lang="ua">UA</button>
+      </div>
+
+      <button class="theme-toggle theme-toggle-btn" title="Toggle theme">
+        <span class="icon-sun">☀️</span>
+        <span class="icon-moon">🌙</span>
+        <span class="toggle-thumb"></span>
+      </button>
+    </div>
+  </nav>
+
+  <footer class="footer">
+    <p data-i18n="footer.text">© 2026 Сантьяго – Цифровой Дзен. Все права защищены.</p>
+  </footer>
+
+  <script src="translations.js?v=10"></script>
+  <script src="menu.js?v=10"></script>
+  <script src="discovery-data.js?v=1"></script>
+  <script src="profile-enhancements.js?v=1"></script>
+  <script>
+    const themeToggles = document.querySelectorAll('.theme-toggle-btn');
+    const body = document.body;
+    if (localStorage.getItem('grayscale') === 'enabled') {
+      body.classList.add('grayscale-mode');
+    }
+    themeToggles.forEach(toggle => {
+      toggle.addEventListener('click', () => {
+        body.classList.toggle('grayscale-mode');
+        localStorage.setItem('grayscale', body.classList.contains('grayscale-mode') ? 'enabled' : 'disabled');
+      });
+    });
+  </script>
+</body>
+</html>

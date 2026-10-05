@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Browse places connected to Lumeya practitioners, services and event formats, with honest location precision.">
+  <title>Places — Lumeya</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=15">
+</head>
+<body class="lumeya-public">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="bg-clouds" aria-hidden="true"><div class="cloud-global c1"></div><div class="cloud-global c2"></div><div class="cloud-global c3"></div></div>
+  <header class="site-header">
+    <a class="site-brand" href="index.html" aria-label="Lumeya home">Lumeya <small>Holistic discovery</small></a>
+    <nav class="site-nav" aria-label="Primary navigation"><ul>
+      <li><a href="index.html">Discover</a></li><li><a href="services.html">Services</a></li><li><a href="masters.html">Practitioners</a></li><li><a href="map.html">Map</a></li><li><a href="events.html">Events</a></li><li><a href="about.html">About</a></li>
+    </ul></nav>
+    <button class="menu-trigger site-menu-button" type="button" aria-label="Open menu"><span aria-hidden="true">☰</span><span>Menu</span></button>
+  </header>
+  <main class="public-main" id="main">
+    <header class="page-intro"><p class="eyebrow">Where discovery becomes local</p><h1>Places</h1><p>Active physical places connected to practitioners and services. An address or map point appears only after it is approved for public use.</p></header>
+    <div class="catalog-toolbar" id="spaces-filters" aria-label="Filter places">
+      <label>Search <input id="spaces-search" type="search" placeholder="Place, city or topic" autocomplete="off"></label>
+      <label>City <select id="spaces-city-filter"><option value="all">All cities</option><option value="prague">Prague</option></select></label>
+      <label>Status <select id="spaces-status-filter"><option value="all">All statuses</option><option value="active">Active</option></select></label>
+    </div>
+    <section id="place-santiago-studio-praha" aria-labelledby="places-catalog-heading">
+      <h2 id="places-catalog-heading" class="visually-hidden">Published places</h2>
+      <div class="entity-grid" id="spaces-grid" aria-live="polite"></div>
+    </section>
+    <div class="state-card" id="spaces-empty" hidden><strong>No matching places</strong><span>Try a broader search or clear the filters.</span> <button class="button" id="spaces-reset-filters" type="button">Clear filters</button></div>
+    <section class="public-section"><div class="section-heading"><div><h2>View geographic context</h2><p>The map never substitutes a generated city point for an unpublished address.</p></div><a class="button button--primary" href="map.html">Open map or list</a></div></section>
+  </main>
+  <nav class="quick-menu" aria-label="Mobile navigation" hidden></nav>
+  <footer class="public-footer"><div class="public-footer__row"><span>© 2026 Lumeya. Public holistic discovery.</span><nav aria-label="Footer"><a href="space.html">Places</a><a href="calendar.html">Calendar</a><a href="suggest.html">Suggest</a></nav></div></footer>
+  <script src="menu.js?v=12"></script>
+  <script src="discovery-data.js?v=1"></script>
+  <script src="spaces.js?v=8"></script>
+</body>
+</html>

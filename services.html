@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Browse Lumeya services with clear status, duration, delivery format, location and practitioner connections.">
+  <title>Services — Lumeya</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=15">
+</head>
+<body class="lumeya-public">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="bg-clouds" aria-hidden="true"><div class="cloud-global c1"></div><div class="cloud-global c2"></div><div class="cloud-global c3"></div></div>
+  <header class="site-header">
+    <a class="site-brand" href="index.html" aria-label="Lumeya home">Lumeya <small>Holistic discovery</small></a>
+    <nav class="site-nav" aria-label="Primary navigation"><ul>
+      <li><a href="index.html">Discover</a></li><li><a href="services.html" aria-current="page" class="active">Services</a></li><li><a href="masters.html">Practitioners</a></li><li><a href="map.html">Places & map</a></li><li><a href="events.html">Events</a></li><li><a href="about.html">About</a></li><li><a href="join.html">Join Lumeya</a></li>
+    </ul></nav>
+    <button class="menu-trigger site-menu-button" type="button" aria-label="Open menu"><span aria-hidden="true">☰</span><span>Menu</span></button>
+  </header>
+  <main class="public-main" id="main">
+    <header class="page-intro"><p class="eyebrow">Service-centred discovery</p><h1>Services</h1><p>Explore holistic and nature-oriented services, including aligned ecological and craft work. Read each offer’s scope and status before choosing how to contact its provider.</p></header>
+    <p class="information-note">Catalogue information comes from the public information currently available to Lumeya. Missing details are shown as “Not published”; publication does not mean independent verification or certification.</p>
+    <section class="public-section public-section--compact" aria-labelledby="service-categories-heading">
+      <div class="section-heading"><div><p class="eyebrow">Browse by category</p><h2 id="service-categories-heading">Find a useful starting point</h2><p>Categories remain explorable when no service is published. A category does not imply that an offer exists.</p></div></div>
+      <div class="category-grid" id="services-categories" aria-live="polite"></div>
+    </section>
+    <div class="catalog-toolbar" id="services-filters" aria-label="Filter services">
+      <label>Search <input id="services-search" type="search" placeholder="Service, topic or provider" autocomplete="off"></label>
+      <label>Status <select id="services-status-filter"><option value="all">All statuses</option><option value="available">Available</option><option value="by-request">By request</option><option value="coming-soon">Coming soon</option><option value="online">Online</option><option value="limited-availability">Limited availability</option></select></label>
+      <label>Format <select id="services-format-filter"><option value="all">All formats</option><option value="individual">Individual</option><option value="group">Group</option><option value="b2b">B2B</option></select></label>
+    </div>
+    <p class="results-summary" id="services-results-count" aria-live="polite"></p>
+    <div class="state-card state-card--unavailable" id="services-data-unavailable" role="status" aria-live="polite" hidden><strong>Catalogue data is unavailable</strong><span>Try again later, or browse the other public information pages.</span></div>
+    <div class="entity-grid" id="services-grid" aria-live="polite"></div>
+    <div class="state-card" id="services-empty" hidden><strong></strong><span data-empty-description></span><div class="state-card__actions"><button class="button" id="services-reset-filters" type="button">Clear filters</button><a class="button button--primary" href="join.html">Introduce a service</a></div></div>
+    <section class="public-section"><div class="section-heading"><div><h2>Can’t find the right fit?</h2><p>Tell Lumeya what you are looking for, or introduce a service that belongs in the directory.</p></div><div class="hero-actions"><a class="button" href="suggest.html#looking-for">Share what you need</a><a class="button button--primary" href="join.html">Join Lumeya</a></div></div></section>
+  </main>
+  <nav class="quick-menu" aria-label="Mobile navigation" hidden></nav>
+  <footer class="public-footer"><div class="public-footer__row"><span>© 2026 Lumeya. Public holistic discovery.</span><nav aria-label="Footer"><a href="map.html">Places &amp; map</a><a href="calendar.html">Calendar</a><a href="join.html">Join Lumeya</a></nav></div></footer>
+  <script src="menu.js?v=12"></script>
+  <script src="discovery-data.js?v=2"></script>
+  <script src="services.js?v=8"></script>
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Discover holistic services, practitioners, places, events and conscious-living approaches through one connected public platform.">
+  <title>Lumeya — Holistic discovery, connected</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=15">
+</head>
+<body class="lumeya-public home-page">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="bg-clouds" aria-hidden="true"><div class="cloud-global c1"></div><div class="cloud-global c2"></div><div class="cloud-global c3"></div></div>
+
+  <header class="site-header">
+    <a class="site-brand" href="index.html" aria-label="Lumeya home">Lumeya <small>Holistic discovery</small></a>
+    <nav class="site-nav" aria-label="Primary navigation"><ul>
+      <li><a href="index.html" aria-current="page" class="active">Discover</a></li><li><a href="services.html">Services</a></li><li><a href="masters.html">Practitioners</a></li><li><a href="map.html">Places & map</a></li><li><a href="events.html">Events</a></li><li><a href="about.html">About</a></li><li><a href="join.html">Join Lumeya</a></li>
+    </ul></nav>
+    <button class="menu-trigger site-menu-button" type="button" aria-label="Open menu"><span aria-hidden="true">☰</span><span>Menu</span></button>
+  </header>
+
+  <main class="public-main" id="main">
+    <section class="public-hero" aria-labelledby="discover-title">
+      <div class="public-hero__copy">
+        <p class="eyebrow">Holistic and nature-oriented discovery</p>
+        <h1 id="discover-title">Find a service. Understand who offers it and where it happens.</h1>
+        <p class="public-hero__lead">Explore real practitioners, organisations, places and events with clear information about each offer and its current status.</p>
+        <form class="discovery-search" id="home-discovery-search" role="search">
+          <label for="home-discovery-query">Search a service, practitioner, place or topic</label>
+          <div class="discovery-search__row"><input id="home-discovery-query" name="q" type="search" list="discovery-search-options" autocomplete="off" placeholder="Try bodywork, a name or a place"><datalist id="discovery-search-options"></datalist><button class="button button--primary" type="submit">Explore</button></div>
+          <p class="visually-hidden" id="home-search-help">Search runs over the currently published catalogue.</p>
+        </form>
+        <div class="hero-actions">
+          <a class="button button--primary" href="services.html">Browse services</a>
+          <a class="button" href="masters.html">Meet providers</a>
+          <a class="button" href="map.html">Places and map</a>
+        </div>
+      </div>
+      <aside class="public-hero__aside" aria-label="How discovery works">
+          <div class="aside-path"><span class="aside-path__number">01</span><div><strong>Discover</strong><span>Start with a service, provider, place, event or topic.</span></div></div>
+          <div class="aside-path"><span class="aside-path__number">02</span><div><strong>Understand</strong><span>Read the offer, availability, location and information status.</span></div></div>
+          <div class="aside-path"><span class="aside-path__number">03</span><div><strong>Connect</strong><span>Choose a published contact route—without an account.</span></div></div>
+      </aside>
+    </section>
+
+    <section class="public-section" id="studio" aria-labelledby="start-heading">
+      <div class="section-heading"><div><p class="eyebrow">Start where you are</p><h2 id="start-heading">A connected service directory</h2><p>Move from what is offered to the person or organisation behind it, then to a place, event format or contact route where the public information supports that connection.</p></div></div>
+      <div class="path-grid">
+        <article class="section-card"><h3>Services and approaches</h3><p>Compare published scope, delivery, availability and related topics. Unknown details remain visible as missing.</p><a href="services.html">Browse service categories →</a></article>
+        <article class="section-card"><h3>Practitioners and providers</h3><p>See the people and organisations connected to services, places and event formats.</p><a href="masters.html">View providers →</a></article>
+        <article class="section-card"><h3>Places and map</h3><p>All published location records stay in the list. Only explicitly verified positions become map pins.</p><a href="map.html">Explore places →</a></article>
+      </div>
+    </section>
+
+    <section class="public-section" aria-labelledby="home-categories-heading">
+      <div class="section-heading"><div><p class="eyebrow">Browse by topic</p><h2 id="home-categories-heading">Explore the service categories</h2><p>Categories describe the scope Lumeya can support. They remain useful even when no service is currently published in one of them.</p></div></div>
+      <div class="category-grid" id="home-categories" aria-live="polite"></div>
+      <div class="state-card state-card--unavailable" id="home-catalog-state" role="status" aria-live="polite" hidden><strong>Catalogue data is unavailable</strong><span>Try again later or open the directory pages.</span></div>
+    </section>
+
+    <section class="public-section" aria-labelledby="events-heading">
+      <div class="section-heading"><div><p class="eyebrow">Current public schedule</p><h2 id="events-heading">Upcoming events</h2><p>Only dated upcoming events appear here. Explanatory formats and concepts stay separate on the Events page.</p></div><a class="button" href="events.html">Events and formats</a></div>
+      <div id="home-events-track" aria-live="polite" aria-busy="true">
+        <div class="state-card"><strong>Loading events…</strong><span>Checking the live calendar.</span></div>
+      </div>
+    </section>
+
+    <section class="public-section" aria-labelledby="connect-heading">
+      <div class="section-heading"><div><p class="eyebrow">Help the network grow</p><h2 id="connect-heading">Know something useful—or need help finding it?</h2></div></div>
+      <div class="path-grid">
+        <article class="section-card"><h3>Join as a provider</h3><p>Introduce a practitioner, service or place for editorial review. A request does not publish a listing automatically.</p><a href="join.html">Introduce your work →</a></article>
+        <article class="section-card"><h3>Tell us what you need</h3><p>Describe what you are looking for and how you would like to be contacted.</p><a href="suggest.html#looking-for">Share your request →</a></article>
+        <article class="section-card"><h3>Understand Lumeya</h3><p>Read how listings are connected, what curation means, and what the MVP deliberately does not claim.</p><a href="about.html">How Lumeya works →</a></article>
+      </div>
+    </section>
+    <p class="information-note">This public MVP does not provide accounts, provider workspaces, certification, native booking, payments, messaging or cross-project data sharing.</p>
+  </main>
+
+  <nav class="quick-menu" aria-label="Mobile navigation" hidden></nav>
+  <footer class="public-footer"><div class="public-footer__row"><span>© 2026 Lumeya. Public holistic discovery.</span><nav aria-label="Footer"><a href="services.html">Services</a><a href="map.html">Places &amp; map</a><a href="join.html">Join Lumeya</a><a href="about.html">About</a></nav></div></footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="public-config.js?v=1"></script>
+  <script src="auth.js?v=7"></script>
+  <script src="menu.js?v=12"></script>
+  <script src="discovery-data.js?v=2"></script>
+  <script src="home-discovery.js?v=1"></script>
+  <script src="home-events.js?v=7"></script>
+</body>
+</html>
