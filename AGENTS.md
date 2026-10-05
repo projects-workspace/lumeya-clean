@@ -8,7 +8,7 @@ Stage 1: `../Projects/Lumeya/Lumeya_Stage_1_Updated_Version.docx`. Stage 2: `../
 
 ## Isolation and delivery
 
-The mixed source and the independently recovered legacy project are separate repositories. Do not modify them, import their Git history, copy local/untracked/environment files, share Git objects, or attach their remotes/deployment state. This repository is local-only, on main, with no remote. No push, new GitHub repository, deployment, migration, credential use, live submission or external message is authorized by this cleanup. A future cutover requires explicit scope and exact resource verification.
+The mixed source and the independently recovered legacy project are separate repositories. Do not modify them, import their Git history, copy local/untracked/environment files, share Git objects, or attach their remotes/deployment state. This repository is on main with SSH origin `git@github.com:projects-workspace/lumeya-clean.git`. The user authorized the new GitHub repository and a cutover of the existing Lumeya Vercel project on 2026-10-05, preserving the mixed repository and previous deployment for rollback. See PROJECT_STATE.md for the actual completed service steps; authorization alone does not prove deployment. Never reapply migrations or delete old resources. No paid-plan change, live submission or external message is authorized. A repository visibility change requires the pending explicit owner decision.
 
 ## Product and security
 
