@@ -25,15 +25,10 @@ README.md
 *.md
 *.py
 package.json
-update_translations.js
-submission-requests.js
-
-# Accidental legacy paths
-offer:/
-profile:/
 
 # Only the two videos referenced by the public site are deployment inputs
 man_videos/*
 !man_videos/IMG_9530.MOV
 woman_videos/*
 !woman_videos/IMG_9488.MOV
+package-lock.json

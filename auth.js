@@ -1,4 +1,4 @@
-/* auth.js - Public Supabase client and dormant browser authentication */
+/* auth.js - Public Supabase client and enforced guest identity */
 
 (function () {
   'use strict';
@@ -51,7 +51,7 @@
   }
 
   function notifyGuestState() {
-    document.dispatchEvent(new CustomEvent('ma3-auth-changed', {
+    document.dispatchEvent(new CustomEvent('lumeya-guest-changed', {
       detail: Auth.user
     }));
   }
@@ -84,9 +84,6 @@
 
       const updateUi = () => {
         notifyGuestState();
-        if (window.MA3Menu && typeof window.MA3Menu.updateAuthUI === 'function') {
-          window.MA3Menu.updateAuthUI(this.user);
-        }
       };
 
       if (document.readyState === 'loading') {
@@ -97,6 +94,6 @@
     }
   };
 
-  window.MA3Auth = Auth;
+  window.LumeyaAuth = Auth;
   Auth.init();
 })();

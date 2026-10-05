@@ -66,7 +66,7 @@ module.exports = {
       errors.push('public-config.js appears to contain a service-role value');
     }
     requirePattern(suggest, /public-config\.js[\s\S]*auth\.js/i, 'suggest.html does not load public config before auth', errors);
-    requirePattern(bot, /if \(ctx\.from && !isPublicRequestFlow\(ctx\)\)/, 'Telegram public request flow can still create a profile', errors);
+    if (/\.from\(['"](?:profiles|bookings|subscriptions|submissions|project_master_requests)['"]\)/.test(bot)) errors.push('request bot accesses a retired private platform table');
     requirePattern(bot, /startPublicRequestWorker\(\)/, 'public request admin notification worker is not started', errors);
 
     return { errors, warnings, info: { contractsChecked: 36 } };

@@ -1,8 +1,8 @@
 {
-  "name": "santiago-way",
+  "name": "lumeya",
   "version": "0.0.0",
   "private": true,
-  "description": "Santiago Way — developer verification tooling only. The production frontend remains static HTML/CSS/JS with no build step.",
+  "description": "Lumeya static guest discovery MVP and local verification tooling.",
   "engines": {
     "node": ">=18"
   },
@@ -24,9 +24,6 @@
     "verify:static-only": "npm run catalog:check && node verify/run.js --pages --links --assets --js --static --mvp --journey --security --secrets",
     "editorial": "node scripts/editorial.js",
     "dev:editorial": "node scripts/editorial-preview.js",
-    "verify:editorial": "node --test verify/editorial.test.js verify/events.test.js"
-  },
-  "devDependencies": {
-    "supabase": "2.116.0"
+    "verify:editorial": "node --test verify/editorial.test.js verify/events.test.js verify/bot-public.test.js"
   }
 }

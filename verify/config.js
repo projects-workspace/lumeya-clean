@@ -16,35 +16,26 @@ const publicPages = [
   'suggest.html',
   'events.html',
   'calendar.html',
+  'profile.html',
+  'profile-andrij.html',
+  'profile-katerina.html',
+  'profile-violetta.html',
   'masters.html',
   'services.html',
   'join.html',
   'space.html',
   'projects.html',
-  'community.html',
-  'coliving.html',
-  'school.html',
-  'shop.html',
   'openmic.html',
-  'project-incubator.html',
-  'conscious-networking.html',
   'conscious-relationships.html',
   'ethical-automation-agency.html',
   'offer.html',
   'offer-katerina.html',
 ];
 
-const accountPages = [
-  'cabinet.html',
-  'profile.html',
-  'profile-andrij.html',
-  'profile-katerina.html',
-  'profile-violetta.html',
-];
+const accountPages = [];
 
 // Public discovery pages that form the Stage 1 MVP. Their primary navigation
-// is intentionally narrow; legacy experiments remain reachable through
-// contextual links, but must not return to the global navigation.
+// is intentionally narrow; catalogue-linked detail pages stay outside primary navigation.
 const coreDiscoveryPages = [
   'index.html',
   'services.html',
@@ -73,7 +64,7 @@ const publicProfilePages = [
   'profile-violetta.html',
 ];
 
-const englishPages = [...publicPages, ...publicProfilePages];
+const englishPages = publicPages;
 
 const requiredFiles = [
   'style.css',
@@ -126,7 +117,6 @@ const requiredPageIds = {
 const keyAssets = [
   'style.css',
   'mvp.css',
-  'favorites.css',
   'menu.js',
   'translations.js',
   'auth.js',
@@ -142,14 +132,13 @@ const keyAssets = [
 // One-off dev utilities that reference other projects on disk.
 // Excluded from the JS link scan to avoid false positives.
 const jsLinkScanExclude = new Set([
-  'update_translations.js',
 ]);
 
 module.exports = {
   REPO_ROOT: path.resolve(__dirname, '..'),
   publicPages,
   accountPages,
-  allPages: [...publicPages, ...accountPages],
+  allPages: publicPages,
   coreDiscoveryPages,
   primaryNavigation,
   publicProfilePages,

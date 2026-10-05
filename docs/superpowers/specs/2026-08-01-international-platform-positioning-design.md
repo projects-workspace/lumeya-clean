@@ -1,8 +1,8 @@
-# Santiago Way International Platform Positioning
+# Lumeya International Platform Positioning
 
 ## Purpose
 
-Santiago Way is an international discovery and cooperation platform for holistic living, natural wellbeing, traditional knowledge, conscious communities, and ethical projects.
+Lumeya is an international discovery and cooperation platform for holistic living, natural wellbeing, traditional knowledge, conscious communities, and ethical projects.
 
 It connects people with events, services, products, places, practitioners, organisations, educational experiences, communities, and projects. It also helps practitioners, organisers, producers, and project creators present their work, reach relevant audiences, receive requests, and find partners.
 
@@ -29,11 +29,11 @@ This is a small, reversible positioning correction rather than a platform restru
 
 ## Homepage Message
 
-The homepage should introduce Santiago Way as an international platform, not primarily as a studio, club, or Prague community.
+The homepage should introduce Lumeya as an international platform, not primarily as a studio, club, or Prague community.
 
 Recommended core copy:
 
-- Title: **Santiago Way**
+- Title: **Lumeya**
 - Main message: **Discover holistic events, services, products, places, practitioners, communities, and projects in one connected platform.**
 
 The existing homepage sections can remain beneath this message. They are current parts of the broader platform and can be reorganised during later information-architecture work.

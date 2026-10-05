@@ -1,3 +1,5 @@
+> Historical source-checkpoint evidence. This independent checkout is local and unreleased. Retired platform migrations/bootstrap mentioned below are intentionally absent; 0016/0017 are preserved contracts, not a fresh-database recipe. Current local verification is in `docs/clean-repo-audit.md`.
+
 # Lumeya release verification
 
 Lumeya's public frontend remains static HTML, CSS and vanilla JavaScript. The

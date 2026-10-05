@@ -1,6 +1,6 @@
 'use strict';
 
-// Santiago Way repository verification runner.
+// Lumeya repository verification runner.
 //
 // Usage:
 //   node verify/run.js            run every check
