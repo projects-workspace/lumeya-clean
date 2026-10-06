@@ -1,6 +1,6 @@
 # Lumeya
 
-Independent repository for the accepted Lumeya guest discovery MVP. Read [PROJECT_STATE.md](PROJECT_STATE.md) for implementation and verification status, and [AGENTS.md](AGENTS.md) for working boundaries. GitHub origin is [projects-workspace/lumeya-clean](https://github.com/projects-workspace/lumeya-clean). The existing Lumeya Vercel cutover is authorized and in progress; consult current state for its verified status.
+Independent repository for the accepted Lumeya guest discovery MVP. Read [PROJECT_STATE.md](PROJECT_STATE.md) for implementation and verification status, and [AGENTS.md](AGENTS.md) for working boundaries. GitHub origin is [projects-workspace/lumeya-clean](https://github.com/projects-workspace/lumeya-clean). The GitHub repository is public; its predecessor is preserved as a private archive. The existing Lumeya Vercel cutover waits on selected-repository App access; consult current state for its verified status.
 
 The static HTML/CSS/JavaScript frontend has no build step. Run `npm run verify` for catalogue consistency, isolated editorial/events/bot tests and the local release gate. No root package installation is required. Required massage videos are tracked; unreferenced raw footage is excluded.
 
